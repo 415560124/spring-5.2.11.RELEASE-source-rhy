@@ -68,7 +68,19 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 * 1.实例化Bean工厂 {@link DefaultListableBeanFactory}
 		 */
 		super();
+		/**
+		 * 创建一个读取注解的Bean定义读取器
+		 * 完成了Spring内部BeanDefinition的注册
+		 * 继承的基类{@link GenericApplicationContext}对象实现了BeanDefinitionRegistry，所以将this传进去
+		 */
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+		/**
+		 * 创建BeanDefinition扫描器 ： 可以用来扫描包或类，转成BeanDefinition
+		 *
+		 * spring在执行{@link ConfigurationClassPostProcessor}，去扫描包时会new一个{@link ClassPathBeanDefinitionScanner}
+		 *
+		 * 这里的scanner仅仅是为了手动调用doScan
+		 */
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 

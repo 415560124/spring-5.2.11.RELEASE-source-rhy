@@ -44,6 +44,10 @@ import org.springframework.core.io.ResourceLoader;
  * expected to be a path without placeholders in this case (e.g. "/beans.xml");
  * JAR files or classes directories can contain multiple files of the same name.
  *
+ * 用于解析资源文件的策略接口，其特殊的地方在于，它应该提供带有*号这种通配符的资源路径。
+ * 在写一个资源路径时，提倡使用classpath*作为前缀以查找所有Jar的根目录。使用无占位符的
+ * 文件名如/beans.xml来确切的表名想要引入的文件名。
+ *
  * @author Juergen Hoeller
  * @since 1.0.2
  * @see org.springframework.core.io.Resource
@@ -58,6 +62,10 @@ public interface ResourcePatternResolver extends ResourceLoader {
 	 * This differs from ResourceLoader's classpath URL prefix in that it
 	 * retrieves all matching resources for a given name (e.g. "/beans.xml"),
 	 * for example in the root of all deployed JAR files.
+	 *
+	 * 在所有根目录下搜索文件的伪URL的前缀
+	 * 与ResourceLoader中classpath不同的地方在于，此前缀会在所有的JAR包的根目录下搜索指定文件。
+	 *
 	 * @see org.springframework.core.io.ResourceLoader#CLASSPATH_URL_PREFIX
 	 */
 	String CLASSPATH_ALL_URL_PREFIX = "classpath*:";
@@ -67,9 +75,14 @@ public interface ResourcePatternResolver extends ResourceLoader {
 	 * <p>Overlapping resource entries that point to the same physical
 	 * resource should be avoided, as far as possible. The result should
 	 * have set semantics.
+	 *
+	 * 返回指定路径下所有的资源对象
+	 * 返回的对象集合应该有Set的语义，也就是说，对于同一个资源，只应该返回一个资源对象
+	 *
 	 * @param locationPattern the location pattern to resolve
 	 * @return the corresponding Resource objects
 	 * @throws IOException in case of I/O errors
+	 *
 	 */
 	Resource[] getResources(String locationPattern) throws IOException;
 

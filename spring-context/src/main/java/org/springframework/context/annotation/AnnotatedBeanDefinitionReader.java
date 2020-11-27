@@ -35,10 +35,10 @@ import org.springframework.util.Assert;
 
 /**
  * Convenient adapter for programmatic registration of bean classes.
- *
+ * 方便的适配器，用于编程注册bean类。
  * <p>This is an alternative to {@link ClassPathBeanDefinitionScanner}, applying
  * the same resolution of annotations but for explicitly registered classes only.
- *
+ * 这是{@link ClassPathBeanDefinitionScanner}的另一种选择，它应用注释的相同解析，但仅用于显式注册的类。
  * @author Juergen Hoeller
  * @author Chris Beams
  * @author Sam Brannen
@@ -62,12 +62,15 @@ public class AnnotatedBeanDefinitionReader {
 	 * <p>If the registry is {@link EnvironmentCapable}, e.g. is an {@code ApplicationContext},
 	 * the {@link Environment} will be inherited, otherwise a new
 	 * {@link StandardEnvironment} will be created and used.
-	 * @param registry the {@code BeanFactory} to load bean definitions into,
+	 * @param registry the {@code BeanFactory} to load bean definitions into, 用来注册Bean定义信息
 	 * in the form of a {@code BeanDefinitionRegistry}
 	 * @see #AnnotatedBeanDefinitionReader(BeanDefinitionRegistry, Environment)
 	 * @see #setEnvironment(Environment)
 	 */
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry) {
+		/**
+		 * 此处注册了Spring内置对象的{@link BeanDefinition}
+		 */
 		this(registry, getOrCreateEnvironment(registry));
 	}
 
@@ -83,8 +86,11 @@ public class AnnotatedBeanDefinitionReader {
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
+		//把ApplicationContext对象赋值给AnnotatedBeanDefinitionReader
 		this.registry = registry;
+		//用户处理条件注解 @Conditional os.name
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		//注册一些内置的后置处理器
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 
@@ -287,8 +293,7 @@ public class AnnotatedBeanDefinitionReader {
 
 
 	/**
-	 * Get the Environment from the given registry if possible, otherwise return a new
-	 * StandardEnvironment.
+	 * 创建或者获取一个{@link Environment}环境上下文对象
 	 */
 	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
