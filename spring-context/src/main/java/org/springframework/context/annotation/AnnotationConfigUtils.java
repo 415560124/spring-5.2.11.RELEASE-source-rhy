@@ -131,6 +131,7 @@ public abstract class AnnotationConfigUtils {
 
 	/**
 	 * Register all relevant annotation post processors in the given registry.
+	 * 用{@link BeanDefinitionRegistry}注册所有相关的注解后置处理器
 	 * @param registry the registry to operate on
 	 */
 	public static void registerAnnotationConfigProcessors(BeanDefinitionRegistry registry) {
@@ -154,14 +155,26 @@ public abstract class AnnotationConfigUtils {
 				//注册了实现Order接口的排序器
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
+			/**
+			 * if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver))
+			 * 如果BeanFactory.get的实例（解析器用于检查一个bean定义是否是自动装配的候选者）不是{@link ContextAnnotationAutowireCandidateResolver}
+			 */
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
+				/**
+				 * 设置@Autowired候选的解析器：ContextAnnotationAutowireCandidateResolver
+				 * getLazyResolutionProxyIfNecessary方法，它也是唯一实现。
+				 * 如果字段上带有@Lazy注解，表示进行懒加载，Spring不会立即创建注入属性的实例，而是生成代理对象来代替实例
+				 */
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
 		}
-
+		//用来存储BeanDefinition的集合
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
-
+		/**
+		 * 往容器中注册了解析配置类的后置处理器{@link ConfigurationClassPostProcessor}
+		 */
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+			//创建一个BeanDefinition对象
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));

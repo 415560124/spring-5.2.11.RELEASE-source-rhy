@@ -36,7 +36,9 @@ public class BeanMetadataAttributeAccessor extends AttributeAccessorSupport impl
 
 	/**
 	 * Set the configuration source {@code Object} for this metadata element.
+	 * 为该元数据元素设置配置源{@code对象}。
 	 * <p>The exact type of the object will depend on the configuration mechanism used.
+	 * 对象的确切类型将取决于所使用的配置机制
 	 */
 	public void setSource(@Nullable Object source) {
 		this.source = source;
