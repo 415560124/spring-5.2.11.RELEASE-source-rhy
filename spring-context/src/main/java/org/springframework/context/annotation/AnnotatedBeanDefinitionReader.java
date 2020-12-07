@@ -133,8 +133,10 @@ public class AnnotatedBeanDefinitionReader {
 
 	/**
 	 * Register one or more component classes to be processed.
+	 * 注册一个或多个要处理的组件类
 	 * <p>Calls to {@code register} are idempotent; adding the same
 	 * component class more than once has no additional effect.
+	 * 调用注册是幂等的；多次添加同一组件类不会产生任何其他影响
 	 * @param componentClasses one or more component classes,
 	 * e.g. {@link Configuration @Configuration} classes
 	 */
@@ -147,6 +149,7 @@ public class AnnotatedBeanDefinitionReader {
 	/**
 	 * Register a bean from the given bean class, deriving its metadata from
 	 * class-declared annotations.
+	 * 从给定的Bean中注册一个Bean定义，并从类声明的注解中派生其元数据
 	 * @param beanClass the class of the bean
 	 */
 	public void registerBean(Class<?> beanClass) {
@@ -242,13 +245,20 @@ public class AnnotatedBeanDefinitionReader {
 	/**
 	 * Register a bean from the given bean class, deriving its metadata from
 	 * class-declared annotations.
+	 * 从给定的Bean中注册一个Bean定义，并从类声明的注解中派生其元数据
 	 * @param beanClass the class of the bean
 	 * @param name an explicit name for the bean
+	 * Bean的显式名称
 	 * @param qualifiers specific qualifier annotations to consider, if any,
 	 * in addition to qualifiers at the bean class level
-	 * @param supplier a callback for creating an instance of the bean
+	 * 除了bean类级别的限定符以外，还需要考虑的特定限定符注释（如果有）
+	 * @param supplier a callback for creating an instance of the bean.
 	 * (may be {@code null})
+	 * 用于创建bean实例的回调。
+	 * (may be {@code null})
+	 * （也许是null）
 	 * @param customizers one or more callbacks for customizing the factory's
+	 * 一个或多个用于自定义工厂的回调
 	 * {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
 	 * @since 5.0
 	 */
@@ -256,17 +266,30 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 
+		//存储@Configuration注解注释的类
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+
+		//根据@Confitional注解判断是否需要跳过解析
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
-
+		//注入创建bean实例的回调
 		abd.setInstanceSupplier(supplier);
+		//解析Bean的作用域，如果没有设置的话默认单例
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+		//注入bean的作用域
 		abd.setScope(scopeMetadata.getScopeName());
+		//获得beanName
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
-
+		/**
+		 * 解析通用注解，填充到{@link AnnotatedGenericBeanDefinition}
+		 * 解析的注解为@Lazy,@Primary,@DependsOn,@Role,@Description
+		 */
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+		/**
+		 * 上一步是解析类中是否存在注解
+		 * 这一步是把注解作为参数传入的设置进去
+		 */
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
 				if (Primary.class == qualifier) {
@@ -276,18 +299,31 @@ public class AnnotatedBeanDefinitionReader {
 					abd.setLazyInit(true);
 				}
 				else {
+					/**
+					 * {@link Map<String, AutowireCandidateQualifier>}
+					 * 直接放入map中
+					 */
 					abd.addQualifier(new AutowireCandidateQualifier(qualifier));
 				}
 			}
 		}
+		//注入用于自定义工厂的回调
 		if (customizers != null) {
 			for (BeanDefinitionCustomizer customizer : customizers) {
 				customizer.customize(abd);
 			}
 		}
-
+		//创建一个BeanDefinition持有者
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+		//应用范围代理模式 - 不知道干啥的
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		/**
+		 * 注册时配合BeanDefinitionHolder来注册
+		 * 最终会调用DefaultListableBeanFactory中的registerBeanDefinition方法去注册，
+		 * DefaultListableBeanFactory维护着一系列信息，比如BeanDefinitionNames，BeanDefinitionMap
+		 * BeanDefinitionNames是一个List<String>用来保存beanName
+		 * BeanDefinitionMap是一个Map,用来保存beanName和BeanDefinition
+		 */
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 

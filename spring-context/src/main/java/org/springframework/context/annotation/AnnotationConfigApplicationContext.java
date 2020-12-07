@@ -108,6 +108,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 * 3.实例化{@link ClassPathBeanDefinitionScanner} 类路径扫描器
 		 */
 		this();
+		/**
+		 * 注册配置类
+		 */
 		register(componentClasses);
 		refresh();
 	}
@@ -172,8 +175,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 	/**
 	 * Register one or more component classes to be processed.
+	 * 注册一个或多个要处理的组件类
 	 * <p>Note that {@link #refresh()} must be called in order for the context
 	 * to fully process the new classes.
+	 * 注意，必须调用{@link #refresh()} 才能使上下文完全处理新类
 	 * @param componentClasses one or more component classes &mdash; for example,
 	 * {@link Configuration @Configuration} classes
 	 * @see #scan(String...)
@@ -182,6 +187,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	@Override
 	public void register(Class<?>... componentClasses) {
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
+		/**
+		 * 调用{@link AnnotatedBeanDefinitionReader}注册配置类
+		 */
 		this.reader.register(componentClasses);
 	}
 

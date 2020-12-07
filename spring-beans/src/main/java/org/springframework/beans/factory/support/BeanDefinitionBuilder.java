@@ -333,6 +333,7 @@ public final class BeanDefinitionBuilder {
 
 	/**
 	 * Apply the given customizers to the underlying bean definition.
+	 * 将给定的定制器应用于基础bean定义
 	 * @since 5.0
 	 */
 	public BeanDefinitionBuilder applyCustomizers(BeanDefinitionCustomizer... customizers) {

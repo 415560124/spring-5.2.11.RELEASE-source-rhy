@@ -26,10 +26,14 @@ import org.springframework.util.StringUtils;
 /**
  * Holder for a BeanDefinition with name and aliases.
  * Can be registered as a placeholder for an inner bean.
+ * 具有名称和别名的BeanDefinition的持有人
+ * 可以注册为内部bean的占位符
  *
  * <p>Can also be used for programmatic registration of inner bean
  * definitions. If you don't care about BeanNameAware and the like,
  * registering RootBeanDefinition or ChildBeanDefinition is good enough.
+ * 也可以用于内部bean定义的程序化注册。
+ * 如果您不关心BeanNameAware之类的东西，那么注册RootBeanDefinition或ChildBeanDefinition就够了
  *
  * @author Juergen Hoeller
  * @since 1.0.2
@@ -38,17 +42,25 @@ import org.springframework.util.StringUtils;
  * @see org.springframework.beans.factory.support.ChildBeanDefinition
  */
 public class BeanDefinitionHolder implements BeanMetadataElement {
-
+	/**
+	 * 持有的BeanDefinition 对象
+	 */
 	private final BeanDefinition beanDefinition;
-
+	/**
+	 * 持有的 bean名称
+	 */
 	private final String beanName;
-
+	/**
+	 * BeanDefinition的别名
+	 * {@link Nullable}注解表示该属性可以为空
+	 */
 	@Nullable
 	private final String[] aliases;
 
 
 	/**
 	 * Create a new BeanDefinitionHolder.
+	 * 根据Bean的名称和BeanDefinition初始化BeanDefinitionHolder
 	 * @param beanDefinition the BeanDefinition to wrap
 	 * @param beanName the name of the bean, as specified for the bean definition
 	 */
@@ -75,6 +87,8 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	 * same contents as the given BeanDefinitionHolder instance.
 	 * <p>Note: The wrapped BeanDefinition reference is taken as-is;
 	 * it is {@code not} deeply copied.
+	 * 根据指定的{@link BeanDefinitionHolder}复制一个新的
+	 * 浅克隆
 	 * @param beanDefinitionHolder the BeanDefinitionHolder to copy
 	 */
 	public BeanDefinitionHolder(BeanDefinitionHolder beanDefinitionHolder) {
@@ -87,6 +101,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 
 	/**
 	 * Return the wrapped BeanDefinition.
+	 * 获取BeanDefinition
 	 */
 	public BeanDefinition getBeanDefinition() {
 		return this.beanDefinition;
@@ -94,6 +109,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 
 	/**
 	 * Return the primary name of the bean, as specified for the bean definition.
+	 * 获取bean的名称
 	 */
 	public String getBeanName() {
 		return this.beanName;
@@ -101,6 +117,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 
 	/**
 	 * Return the alias names for the bean, as specified directly for the bean definition.
+	 * 获取别名
 	 * @return the array of alias names, or {@code null} if none
 	 */
 	@Nullable
@@ -110,6 +127,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 
 	/**
 	 * Expose the bean definition's source object.
+	 * 获取beanDefinition的源对象，实现了BeanMetadataElement
 	 * @see BeanDefinition#getSource()
 	 */
 	@Override
@@ -121,6 +139,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	/**
 	 * Determine whether the given candidate name matches the bean name
 	 * or the aliases stored in this bean definition.
+	 * 判断指定的名称与BeanName或者别名是否匹配
 	 */
 	public boolean matchesName(@Nullable String candidateName) {
 		return (candidateName != null && (candidateName.equals(this.beanName) ||
@@ -131,6 +150,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 
 	/**
 	 * Return a friendly, short description for the bean, stating name and aliases.
+	 * 返回一个描述包括Bean名称和所有名称
 	 * @see #getBeanName()
 	 * @see #getAliases()
 	 */
@@ -144,6 +164,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	/**
 	 * Return a long description for the bean, including name and aliases
 	 * as well as a description of the contained {@link BeanDefinition}.
+	 * 返回一个长描述符包括名称，别名以及BeanDefinition的内容
 	 * @see #getShortDescription()
 	 * @see #getBeanDefinition()
 	 */
@@ -154,6 +175,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	/**
 	 * This implementation returns the long description. Can be overridden
 	 * to return the short description or any kind of custom description instead.
+	 * 重写toString
 	 * @see #getLongDescription()
 	 * @see #getShortDescription()
 	 */
@@ -162,7 +184,11 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 		return getLongDescription();
 	}
 
-
+	/**
+	 * 重写equals
+	 * @param other
+	 * @return
+	 */
 	@Override
 	public boolean equals(@Nullable Object other) {
 		if (this == other) {
@@ -176,7 +202,10 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 				this.beanName.equals(otherHolder.beanName) &&
 				ObjectUtils.nullSafeEquals(this.aliases, otherHolder.aliases);
 	}
-
+	/**
+	 * 重写hashCode
+	 * @return
+	 */
 	@Override
 	public int hashCode() {
 		int hashCode = this.beanDefinition.hashCode();
