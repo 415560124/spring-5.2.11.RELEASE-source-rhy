@@ -527,20 +527,38 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
-			// Prepare this context for refreshing.
+			// Prepare this context for refreshing. 准备此上下文以进行刷新
+			/**
+			 * 准备工作包括设置启动时间，是否激活标志位
+			 * 初始化属性源（property source）配置
+			 */
 			prepareRefresh();
 
-			// Tell the subclass to refresh the internal bean factory.
+			// Tell the subclass to refresh the internal bean factory. 告诉子类刷新内部bean工厂
+			/**
+			 * 获取 DefaultListableBeanFactory对象，后续会对BeanFactory设置
+			 * 在子类中启动refreshBeanFactory()的地方
+			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-			// Prepare the bean factory for use in this context.
+			// Prepare the bean factory for use in this context. 准备bean工厂为以用在上下文中
+			/**
+			 * 准备beanFactory
+			 */
 			prepareBeanFactory(beanFactory);
 
 			try {
-				// Allows post-processing of the bean factory in context subclasses.
+				// Allows post-processing of the bean factory in context subclasses.  允许执行bean工厂的后置处理器在上下文子类中
+				/**
+				 * 空方法
+				 */
 				postProcessBeanFactory(beanFactory);
 
-				// Invoke factory processors registered as beans in the context.
+				// Invoke factory processors registered as beans in the context.  在上下文中执行bean工厂处理器注册bean
+				/**
+				 * 在spring的环境中 执行已经被注册的BeanFactoryPostProcessors
+				 * 设置执行自定义的ProcessorBeanFactory
+				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				/**
@@ -548,16 +566,25 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
  				 */
 				registerBeanPostProcessors(beanFactory);
 
-				// 初始化国际化资源处理器.
+				/**
+				 * 对上下文中的消息源进行初始化
+				 */
 				initMessageSource();
 
-				// 创建事件多播器
+				/**
+				 * 初始化上下文中的事件机制
+				 */
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
+				/**
+				 * 没有具体实现的方法
+				 */
 				onRefresh();
 
-				// 把我们的事件监听器注册到多播器上
+				/**
+				 * 检查监听bean并且将这些bean向容器注册
+				 */
 				registerListeners();
 
 				/**
@@ -566,6 +593,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
+				/**
+				 * 发布容器事件，结束refresh过程
+				 */
 				finishRefresh();
 			}
 
@@ -576,9 +606,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				}
 
 				// Destroy already created singletons to avoid dangling resources.
+				/**
+				 * 为防止bean资源占用，在异常处理中，销毁已经在前面过程中生成的单例bean
+				 */
 				destroyBeans();
 
 				// Reset 'active' flag.
+				/**
+				 * 重置active标志
+				 */
 				cancelRefresh(ex);
 
 				// Propagate exception to caller.

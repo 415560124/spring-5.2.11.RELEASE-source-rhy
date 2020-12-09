@@ -112,6 +112,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 * 注册配置类
 		 */
 		register(componentClasses);
+		/**
+		 * 初始化spring的环境
+		 */
 		refresh();
 	}
 
