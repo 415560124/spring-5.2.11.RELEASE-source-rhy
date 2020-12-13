@@ -202,21 +202,36 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
-	 * Determine the raw name, resolving aliases to canonical names.
-	 * @param name the user-specified name
-	 * @return the transformed name
+	 * 确定原始名称，将别名解析为规范名称
+	 * @param name 用户指定的名称
+	 * @return 转换后的名称
 	 */
 	public String canonicalName(String name) {
 		String canonicalName = name;
-		// Handle aliasing...
+		/**
+		 * 这里使用while循环进行处理，原因是：可能会存在多重别名的问题，及别名指向别名。
+		 * 比如下面的配置：
+		 *   <bean id="tulingDao" class="com.tuling.mapper.tulingDao"/>
+		 *   <alias name="tulingDao" alias="aliasA"/>
+		 *   <alias name="aliasA" alias="aliasB"/>
+		 * 上面的别名关系：aliasB -> aliasA -> tulingDao
+		 * 存储的结构为：aliasMap = [<aliasB, aliasA>, <aliasA, tulingDao>]
+		 */
 		String resolvedName;
 		do {
+			//通过用户指定名称get真实名称
 			resolvedName = this.aliasMap.get(canonicalName);
+			//获取到的真实名不为null
 			if (resolvedName != null) {
+				//将真实名赋值给传入
 				canonicalName = resolvedName;
 			}
 		}
 		while (resolvedName != null);
+		/**
+		 * 1）如果没有别名，那么用户传入的名称原封返回
+		 * 2）存在别名，则返回真实名称
+		 */
 		return canonicalName;
 	}
 

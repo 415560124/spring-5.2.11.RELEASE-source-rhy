@@ -1077,6 +1077,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	@Override
 	public boolean isFactoryBean(String name) throws NoSuchBeanDefinitionException {
+		/**
+		 * 由于存在别名，所以在此将bean名称转换成真实的名字
+		 */
 		String beanName = transformedBeanName(name);
 		Object beanInstance = getSingleton(beanName, false);
 		if (beanInstance != null) {
@@ -1191,12 +1194,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	//---------------------------------------------------------------------
 
 	/**
-	 * Return the bean name, stripping out the factory dereference prefix if necessary,
-	 * and resolving aliases to canonical names.
-	 * @param name the user-specified name
-	 * @return the transformed bean name
+	 * 返回Bean名称，必要时去除工厂取消引用前缀（可能包含工厂Bean的&，或者别名），并将别名解析为规范名称
+	 * @param name 用户指定名称
+	 * @return 转换后的Bean名称
 	 */
 	protected String transformedBeanName(String name) {
+		//具体实现
 		return canonicalName(BeanFactoryUtils.transformedBeanName(name));
 	}
 

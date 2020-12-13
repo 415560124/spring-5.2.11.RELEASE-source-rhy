@@ -117,10 +117,8 @@ import org.springframework.lang.Nullable;
 public interface BeanFactory {
 
 	/**
-	 * Used to dereference a {@link FactoryBean} instance and distinguish it from
-	 * beans <i>created</i> by the FactoryBean. For example, if the bean named
-	 * {@code myJndiObject} is a FactoryBean, getting {@code &myJndiObject}
-	 * will return the factory, not the instance returned by the factory.
+	 * 用于取消引用FactoryBean实例，并将其与FactoryBean创建的bean区分开。
+	 * 例如，如果名为myJndiObject的bean是FactoryBean，则获取&myJndiObject将返回工厂，而不是工厂返回的实例
 	 */
 	String FACTORY_BEAN_PREFIX = "&";
 
@@ -141,6 +139,7 @@ public interface BeanFactory {
 
 	/**
 	 * Return an instance, which may be shared or independent, of the specified bean.
+	 * 去容器中获取bean对象
 	 * <p>Behaves the same as {@link #getBean(String)}, but provides a measure of type
 	 * safety by throwing a BeanNotOfRequiredTypeException if the bean is not of the
 	 * required type. This means that ClassCastException can't be thrown on casting
@@ -148,7 +147,9 @@ public interface BeanFactory {
 	 * <p>Translates aliases back to the corresponding canonical bean name.
 	 * <p>Will ask the parent factory if the bean cannot be found in this factory instance.
 	 * @param name the name of the bean to retrieve
+	 *                按bean名称找
 	 * @param requiredType type the bean must match; can be an interface or superclass
+	 *                     类型必须匹配；可以为接口或者基类
 	 * @return an instance of the bean
 	 * @throws NoSuchBeanDefinitionException if there is no such bean definition
 	 * @throws BeanNotOfRequiredTypeException if the bean is not of the required type

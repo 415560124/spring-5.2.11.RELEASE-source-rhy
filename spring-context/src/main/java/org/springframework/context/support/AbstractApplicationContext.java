@@ -558,6 +558,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				/**
 				 * 在spring的环境中 执行已经被注册的BeanFactoryPostProcessors
 				 * 设置执行自定义的ProcessorBeanFactory
+				 * 1. 在此将class扫描成beanDefinition
+				 * 2. bean工厂的后置处理器调用
 				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
@@ -898,9 +900,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * Finish the initialization of this context's bean factory,
 	 * initializing all remaining singleton beans.
+	 * bean工厂完成初始化，实例化所有剩余的单例bean
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
 		// Initialize conversion service for this context.
+		// 为bean工厂创建类型转化器
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
@@ -910,23 +914,29 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Register a default embedded value resolver if no bean post-processor
 		// (such as a PropertyPlaceholderConfigurer bean) registered any before:
 		// at this point, primarily for resolution in annotation attribute values.
+		/**
+		 * 如果没有bean后置处理器，则注册默认的嵌入式值解析器
+		 */
 		if (!beanFactory.hasEmbeddedValueResolver()) {
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 		}
 
 		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
+		/**
+		 * 尽早初始化LoadTimeWeaverAware Bean，以便尽早注册其转换器。
+		 */
 		String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, false, false);
 		for (String weaverAwareName : weaverAwareNames) {
 			getBean(weaverAwareName);
 		}
 
-		// Stop using the temporary ClassLoader for type matching.
+		// 停止使用临时的ClassLoader进行类型匹配
 		beanFactory.setTempClassLoader(null);
 
-		// Allow for caching all bean definition metadata, not expecting further changes.
+		// 冻结所有bean定义，说明注册的bean定义将不被修改或进行任何进一步的处理
 		beanFactory.freezeConfiguration();
 
-		// Instantiate all remaining (non-lazy-init) singletons.
+		// 实例化剩余的所有单例Bean
 		beanFactory.preInstantiateSingletons();
 	}
 

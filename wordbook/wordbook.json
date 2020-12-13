@@ -1,0 +1,89 @@
+[
+  {
+    "id": 1,
+    "word": "relevant",
+    "sourceLanguage": "en",
+    "targetLanguage": "zh-CN",
+    "phonetic": "ˈreləvənt",
+    "explanation": "相关的\n\n形容词: 相应; 应用; 贴题",
+    "tags": [],
+    "createdAt": 1606568278680
+  },
+  {
+    "id": 2,
+    "word": "Generate",
+    "sourceLanguage": "en",
+    "targetLanguage": "zh-CN",
+    "explanation": "生成\n\n动词: 生成; 产生\n形容词: 发生的",
+    "tags": [],
+    "createdAt": 1607349455534
+  },
+  {
+    "id": 3,
+    "word": "placeholder",
+    "sourceLanguage": "en",
+    "targetLanguage": "zh-CN",
+    "phonetic": "ˈplāsˌhōldər",
+    "explanation": "占位符",
+    "tags": [],
+    "createdAt": 1607351020680
+  },
+  {
+    "id": 4,
+    "word": "under",
+    "sourceLanguage": "en",
+    "targetLanguage": "zh-CN",
+    "phonetic": "ˈəndər",
+    "explanation": "下\n\n介词: 下; 根据; 之下; 以下; 下面; 底下; 少于; 下边; 使用; 在 ... 下; 在 ... 之下\n副词: 在下边; 在下面",
+    "tags": [],
+    "createdAt": 1607351450472
+  },
+  {
+    "id": 5,
+    "word": "if any",
+    "sourceLanguage": "en",
+    "targetLanguage": "zh-CN",
+    "explanation": "如果有的话",
+    "tags": [],
+    "createdAt": 1607351506260
+  },
+  {
+    "id": 6,
+    "word": "subclass",
+    "sourceLanguage": "en",
+    "targetLanguage": "zh-CN",
+    "phonetic": "ˈsəbklas",
+    "explanation": "子类",
+    "tags": [],
+    "createdAt": 1607432915254
+  },
+  {
+    "id": 7,
+    "word": "tell",
+    "sourceLanguage": "en",
+    "targetLanguage": "zh-CN",
+    "phonetic": "tel",
+    "explanation": "告诉\n\n动词: 告诉; 诉说; 说; 讲; 告; 断定; 诉; 吩咐; 吐露; 泄露; 交待; 语; 详述; 晓示; 谓; 详; 晓; 陈; 述; 摅; 通\n名词: 古墓",
+    "tags": [],
+    "createdAt": 1607432921089
+  },
+  {
+    "id": 8,
+    "word": "processors",
+    "sourceLanguage": "en",
+    "targetLanguage": "zh-CN",
+    "explanation": "处理器\n\n名词: 处理器; 洗印机",
+    "tags": [],
+    "createdAt": 1607433288811
+  },
+  {
+    "id": 9,
+    "word": "wrapper",
+    "sourceLanguage": "en",
+    "targetLanguage": "zh-CN",
+    "phonetic": "ˈrapər",
+    "explanation": "包装纸\n\n名词: 包装纸; 包皮; 皮",
+    "tags": [],
+    "createdAt": 1607692826837
+  }
+]
