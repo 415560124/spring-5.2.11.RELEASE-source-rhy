@@ -19,24 +19,7 @@ public class MainStart {
 		userService.helloWorld();
 
 
-		String[] dependsOn = new String[] { "A", "B", "C" };
-		BeanDefinitionBuilder bdb = BeanDefinitionBuilder.rootBeanDefinition(TestBean.class);
-		bdb.setScope(BeanDefinition.SCOPE_PROTOTYPE);
-		bdb.addPropertyReference("age", "15");
-		for (int i = 0; i < dependsOn.length; i++) {
-			bdb.addDependsOn(dependsOn[i]);
-		}
-
-		bdb.applyCustomizers(new BeanDefinitionCustomizer()
-		{
-
-			@Override
-			public void customize(BeanDefinition bd) {
-				bdb.addPropertyReference("age", "16");
-			}
-		});
-
-		RootBeanDefinition rbd = (RootBeanDefinition) bdb.getBeanDefinition();
-
 	}
 }
+
+  
