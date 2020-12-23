@@ -469,8 +469,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	//---------------------------------------------------------------------
 
 	/**
-	 * Central method of this class: creates a bean instance,
-	 * populates the bean instance, applies post-processors, etc.
+	 * 此类的核心方法: 创建bean实例,填充bean实例, 执行后置处理器等。
 	 * @see #doCreateBean
 	 */
 	@Override
@@ -482,9 +481,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 		RootBeanDefinition mbdToUse = mbd;
 
-		// Make sure bean class is actually resolved at this point, and
-		// clone the bean definition in case of a dynamically resolved Class
-		// which cannot be stored in the shared merged bean definition.
+		// 确保此时确实解析了bean类, 并在无法动态存储的Class不能存储在共享合并bean定义中的情况下克隆bean定义。
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			mbdToUse = new RootBeanDefinition(mbd);
@@ -493,6 +490,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Prepare method overrides.
 		try {
+			/**
+			 * 验证和准备覆盖方法( 仅在XML方式中）
+			 * lookup-method 和 replace-method
+			 * 这两个配置存放在 BeanDefinition 中的 methodOverrides( 仅在XML方式中）
+			 * 在XML方式中 bean 实例化的过程中如果检测到存在 methodOverrides ，
+			 * 则会动态地位为当前 bean 生成代理并使用对应的拦截器为 bean 做增强处理。
+			 * 具体的实现我们后续分析，现在先看 mbdToUse.prepareMethodOverrides() 代码块
+			 */
 			mbdToUse.prepareMethodOverrides();
 		}
 		catch (BeanDefinitionValidationException ex) {

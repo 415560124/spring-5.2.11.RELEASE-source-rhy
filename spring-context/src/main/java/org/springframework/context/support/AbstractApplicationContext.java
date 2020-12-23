@@ -903,17 +903,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * bean工厂完成初始化，实例化所有剩余的单例bean
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
-		// Initialize conversion service for this context.
-		// 为bean工厂创建类型转化器
+		/**
+		 * 为bean工厂创建类型转化器
+		 */
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
 					beanFactory.getBean(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class));
 		}
 
-		// Register a default embedded value resolver if no bean post-processor
-		// (such as a PropertyPlaceholderConfigurer bean) registered any before:
-		// at this point, primarily for resolution in annotation attribute values.
 		/**
 		 * 如果没有bean后置处理器，则注册默认的嵌入式值解析器
 		 */
@@ -921,7 +919,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 		}
 
-		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
 		/**
 		 * 尽早初始化LoadTimeWeaverAware Bean，以便尽早注册其转换器。
 		 */

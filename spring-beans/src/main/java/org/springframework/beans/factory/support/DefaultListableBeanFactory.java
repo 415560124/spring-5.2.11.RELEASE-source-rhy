@@ -896,7 +896,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				 * 是不是工厂Bean
 				 */
 				if (isFactoryBean(beanName)) {
+					// 是工厂bean会先生成实际的bean ‘&beanName’是用来获取实际bean的
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
+					// bean是否实现了FactoryBean
 					if (bean instanceof FactoryBean) {
 						FactoryBean<?> factory = (FactoryBean<?>) bean;
 						boolean isEagerInit;
@@ -909,12 +911,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							isEagerInit = (factory instanceof SmartFactoryBean &&
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
+						//isEagerInit判断是否需要提前调用getObject
 						if (isEagerInit) {
 							getBean(beanName);
 						}
 					}
 				}
 				else {
+					//非工厂bean 就是普通的bean
 					getBean(beanName);
 				}
 			}
