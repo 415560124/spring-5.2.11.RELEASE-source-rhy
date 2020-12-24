@@ -506,7 +506,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+			/**
+			 * 第一个bean后置处理器
+			 */
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -1110,8 +1112,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
-	 * Apply before-instantiation post-processors, resolving whether there is a
-	 * before-instantiation shortcut for the specified bean.
+	 * 应用实例化之前的后置处理器，以解决指定bean是否存在实例化方式
 	 * @param beanName the name of the bean
 	 * @param mbd the bean definition for the bean
 	 * @return the shortcut-determined bean instance, or {@code null} if none
@@ -1120,12 +1121,22 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected Object resolveBeforeInstantiation(String beanName, RootBeanDefinition mbd) {
 		Object bean = null;
 		if (!Boolean.FALSE.equals(mbd.beforeInstantiationResolved)) {
-			// Make sure bean class is actually resolved at this point.
+			//  && 判断容器中是否有{@link InstantiationAwareBeanPostProcessors}
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+				//获取当前bean定义的class对象
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
+					/**
+					 * 后置处理器的第一次调用，总共有九处调用，事务在这里不会被调用，aop的才会调用
+					 * aop在这里调用的原因是：需要解析出对应切面报错到缓存中
+					 * {@link InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation(Class, String)}
+					 */
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					if (bean != null) {
+						/**
+						 * bean后置处理器的第二次调用，该后置处理器被调用的话 第一处的处理器返回不是null
+						 * {@link InstantiationAwareBeanPostProcessor#postProcessAfterInitialization(Object, String)}
+						 */
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
 					}
 				}
@@ -1148,9 +1159,19 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	@Nullable
 	protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {
+		//获取容器中所有后置处理器
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
+			//判断后置处理器是否实现了 InstantiationAwareBeanPostProcessor
 			if (bp instanceof InstantiationAwareBeanPostProcessor) {
+				//把BeanPostProcessor强制转为InstantiationAwarePostProcessor
 				InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
+				/**
+				 * 【很重要】
+				 * AOP @EnableAspectJAutoProxy 为容器中导入了 {@link AnnotationAwareAspectJAutoProxyCreator}
+				 * 事务注解 @EnableTransactionManagement 为容器中导入了 {@link InfrastructureAdvisorAutoProxyCreator}
+				 * 都是实现了 BeanPostProcessor 接口，InstantiationAwareBeanPostProcessor
+				 * 进行后置处理解析切面
+				 */
 				Object result = ibp.postProcessBeforeInstantiation(beanClass, beanName);
 				if (result != null) {
 					return result;
