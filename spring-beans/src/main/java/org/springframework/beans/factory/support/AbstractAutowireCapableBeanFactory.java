@@ -510,6 +510,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 * 第一个bean后置处理器
 			 */
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
+			//如果此后置处理器创建了bean则不执行下面的逻辑
 			if (bean != null) {
 				return bean;
 			}
@@ -520,6 +521,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
+			/**
+			 * 真正创建bean的流程
+			 */
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Finished creating instance of bean '" + beanName + "'");
@@ -1826,7 +1830,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			//若bean实现了xxxAware接口进行方法回调
 			invokeAwareMethods(beanName, bean);
 		}
-
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {
 			//调用我们bean的后置处理器的postProcessorsBeforeInitialization方法 @PostConstruct
