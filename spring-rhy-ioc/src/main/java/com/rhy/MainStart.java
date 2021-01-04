@@ -4,7 +4,6 @@ import com.rhy.bean.A;
 import com.rhy.config.Config;
 import com.rhy.service.UserService;
 import com.rhy.service.impl.UserServiceImpl;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
