@@ -613,9 +613,20 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 初始化bean实例
 		Object exposedObject = bean;
 		try {
-			//进行属性赋值
+			/**
+			 * 进行属性赋值
+			 * 执行了判断是否走框架的属性赋值逻辑的{@link InstantiationAwareBeanPostProcessor#postProcessAfterInstantiation(Object, String)}
+			 * 执行了可以修改赋值属性的{@link InstantiationAwareBeanPostProcessor#postProcessPropertyValues(PropertyValues, PropertyDescriptor[], Object, String)}
+			 */
 			populateBean(beanName, mbd, instanceWrapper);
-			//进行对象初始化操作（在这里可能生成代理对象）
+
+			/**
+			 * 进行对象初始化操作（在这里可能生成代理对象）
+			 * 若bean实现了xxxAware接口进行方法回调 {@link BeanNameAware} {@link BeanClassLoaderAware} {@link BeanFactoryAware}
+			 * 调用每个{@link BeanPostProcessor#postProcessBeforeInitialization(Object, String)}方法
+			 * bean如果实现了{@link InitializingBean#afterPropertiesSet()}方法，则调用。或者@Bean的initMethod
+			 * 调用每个{@link BeanPostProcessor#postProcessAfterInitialization(Object, String)}方法
+			 */
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -657,6 +668,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Register bean as disposable.
 		try {
+			// 注册销毁bean的销毁接口
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);
 		}
 		catch (BeanDefinitionValidationException ex) {

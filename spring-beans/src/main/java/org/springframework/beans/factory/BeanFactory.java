@@ -138,18 +138,18 @@ public interface BeanFactory {
 	Object getBean(String name) throws BeansException;
 
 	/**
-	 * Return an instance, which may be shared or independent, of the specified bean.
 	 * 去容器中获取bean对象
+	 *
 	 * <p>Behaves the same as {@link #getBean(String)}, but provides a measure of type
 	 * safety by throwing a BeanNotOfRequiredTypeException if the bean is not of the
 	 * required type. This means that ClassCastException can't be thrown on casting
 	 * the result correctly, as can happen with {@link #getBean(String)}.
 	 * <p>Translates aliases back to the corresponding canonical bean name.
 	 * <p>Will ask the parent factory if the bean cannot be found in this factory instance.
-	 * @param name the name of the bean to retrieve
-	 *                按bean名称找
-	 * @param requiredType type the bean must match; can be an interface or superclass
-	 *                     类型必须匹配；可以为接口或者基类
+	 * @param name 按bean名称找
+	 *
+	 * @param requiredType 类型必须匹配；可以为接口或者基类
+	 *
 	 * @return an instance of the bean
 	 * @throws NoSuchBeanDefinitionException if there is no such bean definition
 	 * @throws BeanNotOfRequiredTypeException if the bean is not of the required type
