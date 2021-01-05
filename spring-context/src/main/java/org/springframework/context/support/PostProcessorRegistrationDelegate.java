@@ -122,9 +122,18 @@ final class PostProcessorRegistrationDelegate {
 			}
 			//对currentRegistryProcessors（当前执行的后置处理器集合）进行排序，数值从小到大
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
-			//加入到BeanDefinitionRegitryPostProcessor集合中
+			/**
+			 * 加入到BeanDefinitionRegitryPostProcessor集合中
+			 * 一开始的时候，spring只会执行BeanDefinitionRegistryPostProcessor独有的方法
+			 * 而不会执行BeanDefinitionRegistryPostProcessor父类的方法，即BeanFactoryPostProcessor的方法
+			 * 所以这里需要把处理器放入到一个集合中后续统一执行BeanFactoryPostProcessor的方法
+			 */
 			registryProcessors.addAll(currentRegistryProcessors);
-			//执行currentRegistryProcessors中的BeanDefinitionRegistryPostProcessor
+			/**
+			 * 执行currentRegistryProcessors中的BeanDefinitionRegistryPostProcessor
+			 * 可以理解为执行ConfigurationClassPostProcessor的postProcessorBeanDefinitionRegistry方法
+			 * spring插拔式设计的体现，像ConfigurationClassPostProcessor就相当于一个组件，Spring很多事情就是交给组件去管理
+			 */
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			//清空当前执行的集合，为后面Order使用
 			currentRegistryProcessors.clear();
@@ -194,36 +203,43 @@ final class PostProcessorRegistrationDelegate {
 		/**
 		 * 第二步：调用{@link BeanFactoryPostProcessor}
 		 */
-		// Do not initialize FactoryBeans here: We need to leave all regular beans
-		// uninitialized to let the bean factory post-processors apply to them!
+		/**
+		 * 获得实现了{@link BeanFactoryPostProcessor}的bean
+		 */
 		String[] postProcessorNames =
 				beanFactory.getBeanNamesForType(BeanFactoryPostProcessor.class, true, false);
 
-		// Separate between BeanFactoryPostProcessors that implement PriorityOrdered,
-		// Ordered, and the rest.
+		/** 实现了{@link PriorityOrdered}的{@link BeanFactoryPostProcessor}集合 */
 		List<BeanFactoryPostProcessor> priorityOrderedPostProcessors = new ArrayList<>();
+		/** 实现了{@link Ordered}的{@link BeanFactoryPostProcessor} */
 		List<String> orderedPostProcessorNames = new ArrayList<>();
+		/** 没有任何顺序接口实现的{@link BeanFactoryPostProcessor} */
 		List<String> nonOrderedPostProcessorNames = new ArrayList<>();
+		/** 循环所有实现了BeanFactoryPostProcessor的beanName */
 		for (String ppName : postProcessorNames) {
+			//如果执行过则跳过
 			if (processedBeans.contains(ppName)) {
 				// skip - already processed in first phase above
 			}
+			/** 加入到实现了{@link PriorityOrdered}的{@link BeanFactoryPostProcessor}集合 */
 			else if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
 				priorityOrderedPostProcessors.add(beanFactory.getBean(ppName, BeanFactoryPostProcessor.class));
 			}
+			/** 加入到实现了{@link Ordered}的{@link BeanFactoryPostProcessor}集合 */
 			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
 				orderedPostProcessorNames.add(ppName);
 			}
+			/** 加入到没有任何顺序接口实现的{@link BeanFactoryPostProcessor}集合 */
 			else {
 				nonOrderedPostProcessorNames.add(ppName);
 			}
 		}
 
-		// First, invoke the BeanFactoryPostProcessors that implement PriorityOrdered.
+		// 首先：排序 => 执行实现了{@link PriorityOrdered}的{@link BeanFactoryPostProcessor}集合
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
 		invokeBeanFactoryPostProcessors(priorityOrderedPostProcessors, beanFactory);
 
-		// Next, invoke the BeanFactoryPostProcessors that implement Ordered.
+		// 下一步：实例化 => 排序=> 执行实现了{@link Ordered}的{@link BeanFactoryPostProcessor}集合
 		List<BeanFactoryPostProcessor> orderedPostProcessors = new ArrayList<>(orderedPostProcessorNames.size());
 		for (String postProcessorName : orderedPostProcessorNames) {
 			orderedPostProcessors.add(beanFactory.getBean(postProcessorName, BeanFactoryPostProcessor.class));
@@ -231,15 +247,14 @@ final class PostProcessorRegistrationDelegate {
 		sortPostProcessors(orderedPostProcessors, beanFactory);
 		invokeBeanFactoryPostProcessors(orderedPostProcessors, beanFactory);
 
-		// Finally, invoke all other BeanFactoryPostProcessors.
+		// 最后：实例化 => 执行没有任何顺序接口实现的{@link BeanFactoryPostProcessor}集合
 		List<BeanFactoryPostProcessor> nonOrderedPostProcessors = new ArrayList<>(nonOrderedPostProcessorNames.size());
 		for (String postProcessorName : nonOrderedPostProcessorNames) {
 			nonOrderedPostProcessors.add(beanFactory.getBean(postProcessorName, BeanFactoryPostProcessor.class));
 		}
 		invokeBeanFactoryPostProcessors(nonOrderedPostProcessors, beanFactory);
 
-		// Clear cached merged bean definitions since the post-processors might have
-		// modified the original metadata, e.g. replacing placeholders in values...
+		// 清除缓存的合并bean定义，因为后处理器可能已经修改了原始元数据，例如替换值中的占位符...
 		beanFactory.clearMetadataCache();
 	}
 

@@ -15,7 +15,6 @@ public class MainStart {
 	public static void main(String[] args) {
 
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Config.class);
-		applicationContext.addBeanFactoryPostProcessor();
 //		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Config.class);
 		UserService userService = applicationContext.getBean(UserService.class);
 		userService.helloWorld();

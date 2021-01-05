@@ -1006,8 +1006,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				}
 			}
 			else {
-				// Still in startup registration phase
+				/**
+				 * beanDefinitionMap是{@link Map<String,BeanDefinition>}
+				 * 把beanName作为key，BeanDefinition作为value，put进去
+				 */
 				this.beanDefinitionMap.put(beanName, beanDefinition);
+				/**
+				 * beanDefinitionNames是一个{@link List<String>}存放beanDefinitionName的集合
+				 */
 				this.beanDefinitionNames.add(beanName);
 				removeManualSingletonName(beanName);
 			}
