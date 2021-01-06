@@ -72,16 +72,26 @@ class ComponentScanAnnotationParser {
 		this.registry = registry;
 	}
 
-
+	/**
+	 * 根据传进来的componentScan注解信息扫描class加入到bean定义中
+	 * @param componentScan {@link ComponentScan}注解上的具体内容
+	 * @param declaringClass 配置类的全class类名
+	 * @return
+	 */
 	public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final String declaringClass) {
+		//创建扫描器对象
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
-
+		/** 为扫描器设置BeanName生成器对象 - begin **/
+		//为扫描器设置BeanName生成器对象
 		Class<? extends BeanNameGenerator> generatorClass = componentScan.getClass("nameGenerator");
+		//看看是不是默认的BeanName生成器对象
 		boolean useInheritedGenerator = (BeanNameGenerator.class == generatorClass);
+		// 是的话则用默认的，不是则实例化BeanName生成器 => 设置进去
 		scanner.setBeanNameGenerator(useInheritedGenerator ? this.beanNameGenerator :
 				BeanUtils.instantiateClass(generatorClass));
-
+		/** 为扫描器设置BeanName生成器对象 - end **/
+		/** 解析bean域代理模型 - begin **/
 		ScopedProxyMode scopedProxyMode = componentScan.getEnum("scopedProxy");
 		if (scopedProxyMode != ScopedProxyMode.DEFAULT) {
 			scanner.setScopedProxyMode(scopedProxyMode);
@@ -90,9 +100,10 @@ class ComponentScanAnnotationParser {
 			Class<? extends ScopeMetadataResolver> resolverClass = componentScan.getClass("scopeResolver");
 			scanner.setScopeMetadataResolver(BeanUtils.instantiateClass(resolverClass));
 		}
+		/** 解析bean域代理模型 - end **/
 
 		scanner.setResourcePattern(componentScan.getString("resourcePattern"));
-
+		/** 设置 includeFilters和exludeFilters - begin **/
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("includeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {
 				scanner.addIncludeFilter(typeFilter);
@@ -103,15 +114,26 @@ class ComponentScanAnnotationParser {
 				scanner.addExcludeFilter(typeFilter);
 			}
 		}
+		/** 设置 includeFilters和exludeFilters - end **/
 
+		/** 设置是否懒加载 - begin **/
 		boolean lazyInit = componentScan.getBoolean("lazyInit");
 		if (lazyInit) {
 			scanner.getBeanDefinitionDefaults().setLazyInit(true);
 		}
+		/** 设置是否懒加载 - end **/
 
+		/** 设置包路径 - start **/
+		/**
+		 * 从下面代码可以看出，{@link ComponentScans}指定扫描目标，有三种方式
+		 * 1.指定basePackages，可以用{}方式，或者字符串中“,;”分割多个包
+		 * 2.指定basePackageClasses就是指定多个类，只要是与这几个类同级或下级都能扫描到
+		 * 3.不指定，默认会把与配置类统计或下级作为扫描目标
+		 */
 		Set<String> basePackages = new LinkedHashSet<>();
 		String[] basePackagesArray = componentScan.getStringArray("basePackages");
 		for (String pkg : basePackagesArray) {
+			//按 “.;” 拆分数组
 			String[] tokenized = StringUtils.tokenizeToStringArray(this.environment.resolvePlaceholders(pkg),
 					ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS);
 			Collections.addAll(basePackages, tokenized);
@@ -122,13 +144,17 @@ class ComponentScanAnnotationParser {
 		if (basePackages.isEmpty()) {
 			basePackages.add(ClassUtils.getPackageName(declaringClass));
 		}
-
+		/** 设置包路径 - end **/
+		/**
+		 * 插入排除规则：注册类自身当作排除规则，执行扫描时，会把自身给排除
+		 */
 		scanner.addExcludeFilter(new AbstractTypeHierarchyTraversingFilter(false, false) {
 			@Override
 			protected boolean matchClassName(String className) {
 				return declaringClass.equals(className);
 			}
 		});
+		//basePackages是一个LinkedHashSet<String>，这里把basePackages转为String[]字符串数组的形式
 		return scanner.doScan(StringUtils.toStringArray(basePackages));
 	}
 

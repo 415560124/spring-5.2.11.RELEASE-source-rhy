@@ -168,9 +168,12 @@ class ConfigurationClassParser {
 
 
 	public void parse(Set<BeanDefinitionHolder> configCandidates) {
+		//循环传进来的配置类
 		for (BeanDefinitionHolder holder : configCandidates) {
+			//获得bean定义
 			BeanDefinition bd = holder.getBeanDefinition();
 			try {
+				//解析我们的配置类
 				if (bd instanceof AnnotatedBeanDefinition) {
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
 				}
@@ -223,14 +226,20 @@ class ConfigurationClassParser {
 
 
 	protected void processConfigurationClass(ConfigurationClass configClass, Predicate<String> filter) throws IOException {
+		/**
+		 * 判断是否需要跳过
+		 * 根据{@link Conditional}决定是否需要跳过
+		 */
 		if (this.conditionEvaluator.shouldSkip(configClass.getMetadata(), ConfigurationPhase.PARSE_CONFIGURATION)) {
 			return;
 		}
-
+		// 获取我们的配置类对象
 		ConfigurationClass existingClass = this.configurationClasses.get(configClass);
 		if (existingClass != null) {
+			//传进来的配置类是通过其他配置类的Import导入进来的
 			if (configClass.isImported()) {
 				if (existingClass.isImported()) {
+					//需要合并配置
 					existingClass.mergeImportedBy(configClass);
 				}
 				// Otherwise ignore new imported config class; existing non-imported class overrides it.
@@ -244,9 +253,10 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// Recursively process the configuration class and its superclass hierarchy.
+		// 递归处理配置类及其超类层次结构
 		SourceClass sourceClass = asSourceClass(configClass, filter);
 		do {
+			//解析我们的配置类
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass, filter);
 		}
 		while (sourceClass != null);
@@ -266,13 +276,16 @@ class ConfigurationClassParser {
 	protected final SourceClass doProcessConfigurationClass(
 			ConfigurationClass configClass, SourceClass sourceClass, Predicate<String> filter)
 			throws IOException {
-
+		/**
+		 * 首先处理@Configuration配置类的嵌套类（嵌套类被@Component @Import @ImportResource @ComponentScan 或者有被@Bean修饰的Method）
+		 * 如果有则会进行递归调用processConfigurationClass()->doProcessConfigurationClass
+		 */
 		if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
-			// Recursively process any member (nested) classes first
+			// 首先递归处理任何成员（嵌套）类
 			processMemberClasses(configClass, sourceClass, filter);
 		}
 
-		// Process any @PropertySource annotations
+		/** 处理{@link PropertySource}注解 */
 		for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), PropertySources.class,
 				org.springframework.context.annotation.PropertySource.class)) {
@@ -285,13 +298,22 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// Process any @ComponentScan annotations
+		/**
+		 * 处理{@link ComponentScan}注解
+		 * {@link ComponentScan}除了最常用的basePackage之外，还有includeFilters，excludeFilters等
+		 */
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
+		// 标记了@ComponentScan && 不跳过
 		if (!componentScans.isEmpty() &&
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
+			//循环解析 @ComponentScan
 			for (AnnotationAttributes componentScan : componentScans) {
-				// The config class is annotated with @ComponentScan -> perform the scan immediately
+				/**
+				 * 使用@ComponentScan注释配置类->立即执行扫描
+				 * componentScan就是@ComponentScan上的具体内容，sourceClass.getMetaData().getClassName()就是配置类的名称
+				 * 把扫描出来的类变为bean定义解析
+				 */
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed
@@ -347,13 +369,15 @@ class ConfigurationClassParser {
 	}
 
 	/**
-	 * Register member (nested) classes that happen to be configuration classes themselves.
+	 * 处理配置类中的嵌套类
+	 * 如果有嵌套类，则递归调用processConfigurationClass。如果嵌套类里面还有嵌套类，则继续递归调用
 	 */
 	private void processMemberClasses(ConfigurationClass configClass, SourceClass sourceClass,
 			Predicate<String> filter) throws IOException {
-
+		//获得配置类中的嵌套类对象class
 		Collection<SourceClass> memberClasses = sourceClass.getMemberClasses();
 		if (!memberClasses.isEmpty()) {
+			//存放配置类的集合
 			List<SourceClass> candidates = new ArrayList<>(memberClasses.size());
 			for (SourceClass memberClass : memberClasses) {
 				if (ConfigurationClassUtils.isConfigurationCandidate(memberClass.getMetadata()) &&
@@ -361,7 +385,9 @@ class ConfigurationClassParser {
 					candidates.add(memberClass);
 				}
 			}
+			//排序嵌套类
 			OrderComparator.sort(candidates);
+			//循环嵌套类集合
 			for (SourceClass candidate : candidates) {
 				if (this.importStack.contains(configClass)) {
 					this.problemReporter.error(new CircularImportProblem(configClass, this.importStack));
@@ -369,6 +395,7 @@ class ConfigurationClassParser {
 				else {
 					this.importStack.push(configClass);
 					try {
+						//有嵌套类，则递归调用processConfigurationClass
 						processConfigurationClass(candidate.asConfigClass(configClass), filter);
 					}
 					finally {

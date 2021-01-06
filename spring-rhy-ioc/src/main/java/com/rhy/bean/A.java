@@ -3,15 +3,19 @@ package com.rhy.bean;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 
-public class A implements InstantiationAwareBeanPostProcessor {
-	@Override
-	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
-		return null;
-	}
-
-
+public class A{
 
 	public A() {
-		System.out.println(11);
+		System.out.println("init A");
+	}
+
+	private B b;
+
+	public B getB() {
+		return b;
+	}
+
+	public void setB(B b) {
+		this.b = b;
 	}
 }

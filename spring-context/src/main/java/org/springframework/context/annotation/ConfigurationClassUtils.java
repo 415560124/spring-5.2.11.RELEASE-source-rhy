@@ -83,12 +83,16 @@ abstract class ConfigurationClassUtils {
 	 */
 	public static boolean checkConfigurationClassCandidate(
 			BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
-
+		//获得bean的class对象名
 		String className = beanDef.getBeanClassName();
+		//class对象名为null || 工厂方法名不为空
 		if (className == null || beanDef.getFactoryMethodName() != null) {
+			//不是一个配置类
 			return false;
 		}
-
+		/**
+		 * 根据bean定义信息，拿到bean定义对应的注解信息
+		 */
 		AnnotationMetadata metadata;
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
@@ -120,7 +124,22 @@ abstract class ConfigurationClassUtils {
 				return false;
 			}
 		}
-
+		/**
+		 * 根据注解元数据判断该bean是否是配置类。若是：则判断是Full模式还是Lite模式
+		 * Full模式还是Lite模式区分：
+		 * <ul>
+		 *     <li>Lite：当注册配置类的时候，可以不加{@link Configuration}直接使用{@link Component}{@link ComponentScan}{@link Import}{@link ImportResource}称为Lite配置类</li>
+		 *     <li>Full：当注册配置类的时候，加了{@link Configuration}成为Full配置类，会被Cglib代理</li>
+		 * </ul>
+		 * Full模式还是Lite模式区别：
+		 * 写一个A类B类，在一个配置类中有两个@Bean注解方法
+		 * 其中一个方法new A，返回A类，为getA
+		 * 另一个方法调用getA
+		 * <ul>
+		 *     <li>Lite：会打印两次构造器输出的内容，也就是实例化两次A</li>
+		 *     <li>Full：只打印一次构造器输出内容，也就是实例化一次A，因为这个类被Cglib代理了，方法已经被改写</li>
+		 * </ul>
+		 */
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
@@ -132,7 +151,7 @@ abstract class ConfigurationClassUtils {
 			return false;
 		}
 
-		// It's a full or lite configuration candidate... Let's determine the order value, if any.
+		// 如果有的话给配置类，赋值Order排序值，
 		Integer order = getOrder(metadata);
 		if (order != null) {
 			beanDef.setAttribute(ORDER_ATTRIBUTE, order);

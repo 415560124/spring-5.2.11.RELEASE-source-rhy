@@ -107,9 +107,12 @@ public @interface ComponentScan {
 	/**
 	 * Indicates whether proxies should be generated for detected components, which may be
 	 * necessary when using scopes in a proxy-style fashion.
+	 * 指示是否应为检测到的组件生成代理，当以代理样式的方式使用合并范围时，可能有必要
 	 * <p>The default is defer to the default behavior of the component scanner used to
 	 * execute the actual scan.
+	 * 默认值取决于用于执行实际扫描的组件扫描程序的默认行为。
 	 * <p>Note that setting this attribute overrides any value set for {@link #scopeResolver}.
+	 * 请注意，设置此属性将覆盖为{@link #scopeResolver}设置的任何值。
 	 * @see ClassPathBeanDefinitionScanner#setScopedProxyMode(ScopedProxyMode)
 	 */
 	ScopedProxyMode scopedProxy() default ScopedProxyMode.DEFAULT;

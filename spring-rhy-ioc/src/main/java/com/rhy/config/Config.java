@@ -1,10 +1,32 @@
 package com.rhy.config;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import com.rhy.bean.A;
+import com.rhy.bean.B;
+import com.rhy.extend.ConditionImpl;
+import org.springframework.context.annotation.*;
+
+import java.util.function.Predicate;
 
 @Configuration
-@ComponentScan("com.rhy")
+//@Conditional({ConditionImpl.class})
+@ComponentScan("com.rhy,;com.wyy")
 public class Config {
-
+	@Bean
+	public A a(){
+		A a = new A();
+		a.setB(b());
+		return a;
+	}
+	@Bean
+	public B b(){
+		return new B();
+	}
+	/**
+	 * 配置类中的嵌套类
+	 * 源码：{@link ConfigurationClassParser#doProcessConfigurationClass(ConfigurationClass, ConfigurationClassParser.SourceClass, Predicate)}=>processMemberClasses
+	 */
+//	@ComponentScan("com.rhy")
+//	class Config2{
+//
+//	}
 }
