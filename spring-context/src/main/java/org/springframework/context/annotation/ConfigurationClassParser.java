@@ -192,7 +192,7 @@ class ConfigurationClassParser {
 						"Failed to parse configuration class [" + bd.getBeanClassName() + "]", ex);
 			}
 		}
-
+		//处理延时的DeferredImportSelector，SpringBoot就是通过这步进行记载spring.factories文件中的自定装配的对象
 		this.deferredImportSelectorHandler.process();
 	}
 
@@ -253,7 +253,7 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// 递归处理配置类及其超类层次结构
+		// 递归处理配置类及其基类层次结构
 		SourceClass sourceClass = asSourceClass(configClass, filter);
 		do {
 			//解析我们的配置类
@@ -316,13 +316,18 @@ class ConfigurationClassParser {
 				 */
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
-				// Check the set of scanned definitions for any further config classes and parse recursively if needed
+				// 检查扫描的Bean定义集合中是否有其他配置类，并在需要时递归解析
 				for (BeanDefinitionHolder holder : scannedBeanDefinitions) {
 					BeanDefinition bdCand = holder.getBeanDefinition().getOriginatingBeanDefinition();
 					if (bdCand == null) {
 						bdCand = holder.getBeanDefinition();
 					}
+					/**
+					 * 判断是否为配置类
+					 * 根据注解判断 Full配置类 or Lite配置类，并且做上标记
+					 */
 					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bdCand, this.metadataReaderFactory)) {
+						//递归解析配置类
 						parse(bdCand.getBeanClassName(), holder.getBeanName());
 					}
 				}
@@ -330,9 +335,17 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @Import annotations
+		/**
+		 * 处理{@link Import}注解
+		 * {@link Import}是Spring很重要的一个注解，Spring Boot大量应用这个注解
+		 * {@link Import}三种类，（1）普通Import类 （2）ImportSelector （3）ImportBeanDefinitionRegistry
+		 * getImports(sourceClass)是获得@Import的内容，返回的是一个Set
+		 */
 		processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
 
-		// Process any @ImportResource annotations
+		/**
+		 * 处理{@link ImportResource}注解
+		 */
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
 		if (importResource != null) {
@@ -344,16 +357,19 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// Process individual @Bean methods
+		/**
+		 * 处理{@link Bean}方法
+		 * 获得了带有{@link Bean}的方法后，不是马上转为BeanDefinition，而是先用Set接收
+		 */
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
 			configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
 		}
 
-		// Process default methods on interfaces
+		// 处理配置类接口的
 		processInterfaces(configClass, sourceClass);
 
-		// Process superclass, if any
+		// 处理配置类的父类的
 		if (sourceClass.getMetadata().hasSuperClass()) {
 			String superclass = sourceClass.getMetadata().getSuperClassName();
 			if (superclass != null && !superclass.startsWith("java") &&
@@ -364,7 +380,7 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// No superclass -> processing is complete
+		// 没有基类 => 处理完成
 		return null;
 	}
 
@@ -802,7 +818,9 @@ class ConfigurationClassParser {
 			try {
 				if (deferredImports != null) {
 					DeferredImportSelectorGroupingHandler handler = new DeferredImportSelectorGroupingHandler();
+					//对多个 DeferredImportSelector 进行排序
 					deferredImports.sort(DEFERRED_IMPORT_COMPARATOR);
+					//正在的调用延时的DeferredImportSelector的selectImport方法
 					deferredImports.forEach(handler::register);
 					handler.processGroupImports();
 				}

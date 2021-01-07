@@ -161,11 +161,16 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		this.registry = registry;
-
+		/**
+		 * 设置默认的扫描规则为true的话  默认是扫描所有的
+		 * 使用includFilters来表示只包含设置的
+		 */
 		if (useDefaultFilters) {
 			registerDefaultFilters();
 		}
+		//设置环境对象
 		setEnvironment(environment);
+		//设置资源加载器
 		setResourceLoader(resourceLoader);
 	}
 
@@ -262,28 +267,49 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	}
 
 	/**
-	 * Perform a scan within the specified base packages,
-	 * returning the registered bean definitions.
-	 * <p>This method does <i>not</i> register an annotation config processor
-	 * but rather leaves this up to the caller.
-	 * @param basePackages the packages to check for annotated classes
-	 * @return set of beans registered if any for tooling registration purposes (never {@code null})
+	 * 在给定的包路径中执行扫描，返回已注册的bean定义
+	 * <p>
+	 *     此方法不注册Bean定义，而是将其留给调用方
+	 * </p>
+	 * @param basePackages 用来检查带注解的包路径
+	 * @return 为工具注册的bean集(如果有的话)(永远不要为{@code null})
 	 */
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
+		//创建Bean定义的Holder对象集合用于保存扫描后生成的bean定义对象
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
+		//循环处理basePackages
 		for (String basePackage : basePackages) {
+			/**
+			 * 根据包名找到符合条件的BeanDefinition集合，找到候选的Components
+			 * 这里默认实现类{@link ClassPathScanningCandidateComponentProvider#isCandidateComponent(AnnotatedBeanDefinition)}排除了接口、没有@Lookup的抽象类
+			 */
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
+			//循环解析出来的bean定义候选名单
 			for (BeanDefinition candidate : candidates) {
+				//解析作用域
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
+				//设置beanName
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
+				/**
+				 * 由findCandidateComponents源码可知，由scanner扫描出来的bean定义类型为{@link ScannedGenericBeanDefinition}
+				 * {@link ScannedGenericBeanDefinition}实现了{@link AbstractBeanDefinition}和{@link AnnotatedBeanDefinition}
+				 * 所以以下两个bean定义都会进入
+				 */
 				if (candidate instanceof AbstractBeanDefinition) {
+					/**
+					 * 处理@Autowired相关的组件。内部会设置默认值
+					 */
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
 				if (candidate instanceof AnnotatedBeanDefinition) {
+					/**
+					 * 处理JSR250相关的组件，还会在设置一遍值
+					 */
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
+				//把解析出来的组件Bean定义注册到IOC容器中
 				if (checkCandidate(beanName, candidate)) {
 					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
 					definitionHolder =
