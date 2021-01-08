@@ -32,6 +32,7 @@ import org.springframework.core.env.EnvironmentCapable;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 /**
  * Convenient adapter for programmatic registration of bean classes.
@@ -132,10 +133,7 @@ public class AnnotatedBeanDefinitionReader {
 
 
 	/**
-	 * Register one or more component classes to be processed.
 	 * 注册一个或多个要处理的组件类
-	 * <p>Calls to {@code register} are idempotent; adding the same
-	 * component class more than once has no additional effect.
 	 * 调用注册是幂等的；多次添加同一组件类不会产生任何其他影响
 	 * @param componentClasses one or more component classes,
 	 * e.g. {@link Configuration @Configuration} classes
@@ -147,8 +145,6 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
 	 * 从给定的Bean中注册一个Bean定义，并从类声明的注解中派生其元数据
 	 * @param beanClass the class of the bean
 	 */
@@ -243,12 +239,9 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
 	 * 从给定的Bean中注册一个Bean定义，并从类声明的注解中派生其元数据
 	 * @param beanClass the class of the bean
-	 * @param name an explicit name for the bean
-	 * Bean的显式名称
+	 * @param name Bean的显式名称
 	 * @param qualifiers specific qualifier annotations to consider, if any,
 	 * in addition to qualifiers at the bean class level
 	 * 除了bean类级别的限定符以外，还需要考虑的特定限定符注释（如果有）
@@ -266,10 +259,13 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 
-		//存储@Configuration注解注释的类
+		/**
+		 * {@link AnnotatedGenericBeanDefinition}可以理解为一种数据结构，用来描述Bean的，这里的作用就是把传入的标记了注解的类
+		 * {@link AnnotatedGenericBeanDefinition#getMetadata()}可以拿到类上的注解
+		 */
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
 
-		//根据@Confitional注解判断是否需要跳过解析
+		//根据@Conditional注解判断是否需要跳过解析
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
@@ -319,7 +315,7 @@ public class AnnotatedBeanDefinitionReader {
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 		/**
 		 * 注册时配合BeanDefinitionHolder来注册
-		 * 最终会调用DefaultListableBeanFactory中的registerBeanDefinition方法去注册，
+		 * 最终会调用{@link DefaultListableBeanFactory#registerBeanDefinition(String, BeanDefinition)}方法去注册，
 		 * DefaultListableBeanFactory维护着一系列信息，比如BeanDefinitionNames，BeanDefinitionMap
 		 * BeanDefinitionNames是一个List<String>用来保存beanName
 		 * BeanDefinitionMap是一个Map,用来保存beanName和BeanDefinition
