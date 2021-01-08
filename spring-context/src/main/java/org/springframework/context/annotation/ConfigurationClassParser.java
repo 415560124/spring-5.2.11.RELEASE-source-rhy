@@ -211,7 +211,7 @@ class ConfigurationClassParser {
 	}
 
 	/**
-	 * Validate each {@link ConfigurationClass} object.
+	 * 验证每个{@link ConfigurationClass}对象
 	 * @see ConfigurationClass#validate
 	 */
 	public void validate() {

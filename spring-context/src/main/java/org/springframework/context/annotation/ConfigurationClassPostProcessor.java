@@ -223,6 +223,11 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 */
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+		/**
+		 * 根据内存地址生成唯一的标志，用来验证重复处理
+		 * 每次创建Context都会产生一个RegistryId，只要不重复创建，返回的值都是一个
+		 * 也就是说当前方法只会执行一次
+		 */
 		int registryId = System.identityHashCode(registry);
 		if (this.registriesPostProcessed.contains(registryId)) {
 			// postProcessBeanDefinitionRegistry已经调用了这个后处理器
@@ -307,6 +312,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 		// Detect any custom bean name generation strategy supplied through the enclosing application context
 		/**
+		 * 拿到BeanFactory然后getSingleton()就是从单例池拿是否有有自定义实现了internalConfigurationBeanNameGenerator接口的类
+		 * 如果不为空则更改componentScan和importBean的解析方式。
+		 * 如果不为空：
 		 * 创建我们通过{@link ComponentScan}导入进来的BeanName生成器
 		 * 创建我们通过{@link Import}导入进来的BeanName生成器
 		 */
@@ -326,7 +334,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				}
 			}
 		}
-
+		/**
+		 * ConfigurationClassPostProcessor的environment如果为null则new StandardEnvironment()
+		 * 不可能为null，因为手动注册进beanDefinitionMap的时候给他设置了Context的enviroment
+		 */
 		if (this.environment == null) {
 			this.environment = new StandardEnvironment();
 		}
@@ -357,16 +368,24 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			alreadyParsed.addAll(configClasses);
 
 			candidates.clear();
+			/**
+			 * 获得注册器的BeanDefinition数量 和 candidateNames 作比较
+			 * 如果大于说明有新的BeanDefinition注册进来了
+			 */
 			if (registry.getBeanDefinitionCount() > candidateNames.length) {
 				String[] newCandidateNames = registry.getBeanDefinitionNames();
 				Set<String> oldCandidateNames = new HashSet<>(Arrays.asList(candidateNames));
 				Set<String> alreadyParsedClasses = new HashSet<>();
+				// 循环alreadyParsed，把类名加到alreadyParsedClasses
 				for (ConfigurationClass configurationClass : alreadyParsed) {
 					alreadyParsedClasses.add(configurationClass.getMetadata().getClassName());
 				}
 				for (String candidateName : newCandidateNames) {
 					if (!oldCandidateNames.contains(candidateName)) {
 						BeanDefinition bd = registry.getBeanDefinition(candidateName);
+						/**
+						 * 检查是否为配置类 && 没有处理过的配置类
+						 */
 						if (ConfigurationClassUtils.checkConfigurationClassCandidate(bd, this.metadataReaderFactory) &&
 								!alreadyParsedClasses.contains(bd.getBeanClassName())) {
 							candidates.add(new BeanDefinitionHolder(bd, candidateName));

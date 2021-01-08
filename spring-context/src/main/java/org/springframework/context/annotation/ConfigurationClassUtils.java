@@ -92,6 +92,10 @@ abstract class ConfigurationClassUtils {
 		}
 		/**
 		 * 根据bean定义信息，拿到bean定义对应的注解信息
+		 * 先判断该类是否实现了AnnotatedBeanDefinition。
+		 * 1）AnnotatedBeanDefinition代表通过reader读取进来的
+		 * 2）ScannerBeanDefinition代表通过scanner读取进来的
+		 * 如果第一个判断满足，则当前的beanDefinition强转成AnnotatedBeanDefinition，比较他的ClassName是否一致,有可能会出现FactoryBean这种情况,正常情况下都一致
 		 */
 		AnnotationMetadata metadata;
 		if (beanDef instanceof AnnotatedBeanDefinition &&
@@ -128,7 +132,7 @@ abstract class ConfigurationClassUtils {
 		 * 根据注解元数据判断该bean是否是配置类。若是：则判断是Full模式还是Lite模式
 		 * Full模式还是Lite模式区分：
 		 * <ul>
-		 *     <li>Lite：当注册配置类的时候，可以不加{@link Configuration}直接使用{@link Component}{@link ComponentScan}{@link Import}{@link ImportResource}称为Lite配置类</li>
+		 *     <li>Lite：当注册配置类的时候，可以不加{@link Configuration}直接使用{@link Component}{@link ComponentScan}{@link Import}{@link ImportResource}或者有加了{@link Bean}的方法称为Lite配置类</li>
 		 *     <li>Full：当注册配置类的时候，加了{@link Configuration}成为Full配置类，会被Cglib代理</li>
 		 * </ul>
 		 * Full模式还是Lite模式区别：
