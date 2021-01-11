@@ -166,7 +166,11 @@ class ConfigurationClassParser {
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, resourceLoader);
 	}
 
-
+	/**
+	 * 解析传进来的配置类
+	 * 处理{@link org.springframework.context.annotation.PropertySource}{@link ComponentScan}{@link Import}
+	 * @param configCandidates 配置类集合
+	 */
 	public void parse(Set<BeanDefinitionHolder> configCandidates) {
 		//循环传进来的配置类
 		for (BeanDefinitionHolder holder : configCandidates) {
@@ -206,6 +210,12 @@ class ConfigurationClassParser {
 		processConfigurationClass(new ConfigurationClass(clazz, beanName), DEFAULT_EXCLUSION_FILTER);
 	}
 
+	/**
+	 * 最终调用{@link ConfigurationClassParser#processConfigurationClass(ConfigurationClass, Predicate)}
+	 * @param metadata
+	 * @param beanName
+	 * @throws IOException
+	 */
 	protected final void parse(AnnotationMetadata metadata, String beanName) throws IOException {
 		processConfigurationClass(new ConfigurationClass(metadata, beanName), DEFAULT_EXCLUSION_FILTER);
 	}
@@ -260,7 +270,7 @@ class ConfigurationClassParser {
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass, filter);
 		}
 		while (sourceClass != null);
-
+		//处理过的配置类集合
 		this.configurationClasses.put(configClass, configClass);
 	}
 

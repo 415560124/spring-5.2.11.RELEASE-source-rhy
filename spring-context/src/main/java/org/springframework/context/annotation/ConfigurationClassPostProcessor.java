@@ -268,7 +268,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	}
 
 	/**
-	 * Build and validate a configuration model based on the registry of
+	 * 建立并验证配置模型基于此注册器
 	 * {@link Configuration} classes.
 	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
@@ -365,6 +365,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
 			this.reader.loadBeanDefinitions(configClasses);
+			//将解析过的配置类添加到已解析集合中
 			alreadyParsed.addAll(configClasses);
 
 			candidates.clear();
@@ -373,14 +374,21 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			 * 如果大于说明有新的BeanDefinition注册进来了
 			 */
 			if (registry.getBeanDefinitionCount() > candidateNames.length) {
+				//解析后的bean定义名称
 				String[] newCandidateNames = registry.getBeanDefinitionNames();
+				//解析前的bean定义名称
 				Set<String> oldCandidateNames = new HashSet<>(Arrays.asList(candidateNames));
+				//解析过的bean定义名称
 				Set<String> alreadyParsedClasses = new HashSet<>();
 				// 循环alreadyParsed，把类名加到alreadyParsedClasses
 				for (ConfigurationClass configurationClass : alreadyParsed) {
 					alreadyParsedClasses.add(configurationClass.getMetadata().getClassName());
 				}
+				//循环当前的bean定义
 				for (String candidateName : newCandidateNames) {
+					/**
+					 * 此if代表：新的bean定义，即新增的bean定义
+					 */
 					if (!oldCandidateNames.contains(candidateName)) {
 						BeanDefinition bd = registry.getBeanDefinition(candidateName);
 						/**
@@ -395,6 +403,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				candidateNames = newCandidateNames;
 			}
 		}
+		/**
+		 * 总结循环的条件就是：
+		 * 有新的bean定义注册进来了 && 检查是否为配置类 && 没有处理过的配置类
+		 */
 		while (!candidates.isEmpty());
 
 		// Register the ImportRegistry as a bean in order to support ImportAware @Configuration classes

@@ -343,7 +343,7 @@ final class PostProcessorRegistrationDelegate {
 	}
 
 	/**
-	 * Invoke the given BeanDefinitionRegistryPostProcessor beans.
+	 * 执行给定的{@link BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry(BeanDefinitionRegistry)}
 	 */
 	private static void invokeBeanDefinitionRegistryPostProcessors(
 			Collection<? extends BeanDefinitionRegistryPostProcessor> postProcessors, BeanDefinitionRegistry registry) {
@@ -354,7 +354,7 @@ final class PostProcessorRegistrationDelegate {
 	}
 
 	/**
-	 * Invoke the given BeanFactoryPostProcessor beans.
+	 * 执行给定的{@link BeanFactoryPostProcessor#postProcessBeanFactory(ConfigurableListableBeanFactory)}
 	 */
 	private static void invokeBeanFactoryPostProcessors(
 			Collection<? extends BeanFactoryPostProcessor> postProcessors, ConfigurableListableBeanFactory beanFactory) {
