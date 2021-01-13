@@ -15,4 +15,8 @@ import org.springframework.stereotype.Component;
 public class InstanceA {
 	@Autowired
 	private InstanceB instanceB;
+
+	public InstanceA() {
+		System.out.println("实例化InstanceA");
+	}
 }

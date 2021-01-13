@@ -33,7 +33,7 @@ public class MainStart {
 	private static Object getBean(String beanName) throws Exception {
 		//实例化
 		RootBeanDefinition rootBeanDefinition = (RootBeanDefinition) beanDefinitionMap.get(beanName);
-		Class cls = rootBeanDefinition.getBeanClass();
+		Class<?> cls = rootBeanDefinition.getBeanClass();
 		Object instance = cls.newInstance();
 		//赋值属性
 		Field[] fields = cls.getDeclaredFields();
