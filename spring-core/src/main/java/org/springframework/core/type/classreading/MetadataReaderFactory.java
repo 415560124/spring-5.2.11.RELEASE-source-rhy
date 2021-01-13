@@ -32,7 +32,7 @@ import org.springframework.core.io.Resource;
 public interface MetadataReaderFactory {
 
 	/**
-	 * Obtain a MetadataReader for the given class name.
+	 * 根据class名创建MetadataReader
 	 * @param className the class name (to be resolved to a ".class" file)
 	 * @return a holder for the ClassReader instance (never {@code null})
 	 * @throws IOException in case of I/O failure
@@ -40,7 +40,7 @@ public interface MetadataReaderFactory {
 	MetadataReader getMetadataReader(String className) throws IOException;
 
 	/**
-	 * Obtain a MetadataReader for the given resource.
+	 * 根据class的Resource创建MetadataReader
 	 * @param resource the resource (pointing to a ".class" file)
 	 * @return a holder for the ClassReader instance (never {@code null})
 	 * @throws IOException in case of I/O failure

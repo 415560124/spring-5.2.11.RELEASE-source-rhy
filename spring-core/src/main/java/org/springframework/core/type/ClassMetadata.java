@@ -21,7 +21,7 @@ import org.springframework.lang.Nullable;
 /**
  * Interface that defines abstract metadata of a specific class,
  * in a form that does not require that class to be loaded yet.
- *
+ * 提供对class类的信息访问
  * @author Juergen Hoeller
  * @since 2.5
  * @see StandardClassMetadata
@@ -31,23 +31,23 @@ import org.springframework.lang.Nullable;
 public interface ClassMetadata {
 
 	/**
-	 * Return the name of the underlying class.
+	 * 返回当前class名称
 	 */
 	String getClassName();
 
 	/**
-	 * Return whether the underlying class represents an interface.
+	 * 返回当前class是否为接口
 	 */
 	boolean isInterface();
 
 	/**
-	 * Return whether the underlying class represents an annotation.
+	 * 返回当前class是否为注解
 	 * @since 4.1
 	 */
 	boolean isAnnotation();
 
 	/**
-	 * Return whether the underlying class is marked as abstract.
+	 * 返回当前class是否为抽象类
 	 */
 	boolean isAbstract();
 
@@ -59,7 +59,7 @@ public interface ClassMetadata {
 	}
 
 	/**
-	 * Return whether the underlying class is marked as 'final'.
+	 * 返回当前class是否为final修饰
 	 */
 	boolean isFinal();
 
