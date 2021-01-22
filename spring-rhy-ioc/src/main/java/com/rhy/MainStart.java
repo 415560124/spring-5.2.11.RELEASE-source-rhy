@@ -11,14 +11,16 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import java.math.BigDecimal;
+
 public class MainStart {
 	public static void main(String[] args) {
+
 
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Config.class);
 //		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Config.class);
 		UserService userService = applicationContext.getBean(UserService.class);
 		userService.helloWorld();
-
 
 	}
 }

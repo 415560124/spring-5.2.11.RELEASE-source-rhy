@@ -1,11 +1,8 @@
 package com.rhy.circular.reference;
 
-import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +29,7 @@ public class MainStart {
 	/**
 	 * 三级缓存：存函数式接口
 	 */
-	public static Map<String, ObjectFactory> singletonFactories = new ConcurrentHashMap<>();
+//	public static Map<String, ObjectFactory> singletonFactories = new ConcurrentHashMap<>();
 
 	/**
 	 * Bean正在创建标记
@@ -41,9 +38,9 @@ public class MainStart {
 	public static void main(String[] args) throws Exception {
 		loadBeanDefinitions();
 
-		for (String beanName:beanDefinitionMap.keySet()) {
-			getBean(beanName);
-		}
+//		for (String beanName:beanDefinitionMap.keySet()) {
+//			getBean(beanName);
+//		}
 	}
 	/**
 	 * 加载bean定义
@@ -177,80 +174,80 @@ public class MainStart {
 //		}
 //		return null;
 //	}
-	/**
- 	 * 4.用三级缓存解决循环依赖
-	 * <p>
-	 * 目的：解耦，处理AOP
-	 * </p>
- 	 * 模拟getBean
- 	 * @param beanName bean名称
- 	 */
-	private static Object getBean(String beanName) throws Exception {
-		Object singleton = getSingleton(beanName);
-		if(singleton != null){
-			return singleton;
-		}
-		//标记正在创建
-		singletonsCurrentyInCreation.add(beanName);
-		//createBean
-
-		//实例化
-		RootBeanDefinition rootBeanDefinition = (RootBeanDefinition) beanDefinitionMap.get(beanName);
-		Class<?> cls = rootBeanDefinition.getBeanClass();
-		Object instance = cls.newInstance();
-		//加入到三级缓存 解耦，处理AOP
-		singletonFactories.put(beanName,() -> {
-			/**
-			 * 解耦
-			 * Spring还是希望正常的Bean在初始化后创建代理，只有当前为循环依赖时，才在实例化时创建动态代理
-			 */
-			return new JdkProxyBeanPostProcessor().getEarlyBeanReference(earlySingletonObjects.get(beanName),beanName);
-		});
-		//赋值属性
-		Field[] fields = cls.getDeclaredFields();
-		for(Field field : fields){
-			field.setAccessible(true);
-			Object bean = getBean(field.getName());
-			field.set(instance,bean);
-		}
-		//初始化 -- 一般在此时创建AOP动态代理
-		//如果二级缓存中有，就是存在循环依赖。
-		//如果被代理了二级缓存中就是代理对象，否则就是源对象
-		if(earlySingletonObjects.containsKey(beanName)){
-			instance = earlySingletonObjects.get(beanName);
-		}
-		//加入到一级缓存中
-		singletonObjects.put(beanName,instance);
-		//remove 二级缓存和三级缓存
-		return instance;
-	}
-
-	/**
-	 * 4.用三级缓存解决循环依赖
-	 * <p>
-	 * 目的：解耦，处理AOP
-	 * </p>
-	 * 从缓存池中获取对象
-	 * @param beanName
-	 * @return
-	 */
-	private static Object getSingleton(String beanName) {
-		Object bean = singletonObjects.get(beanName);
-		//一级缓存中不存在 && Bean正在创建（循环依赖）
-		if(bean == null && singletonsCurrentyInCreation.contains(beanName)){
-			//则从二级缓存中拿
-			bean = earlySingletonObjects.get(beanName);
-			//二级缓存中没有则调用三级缓存创建代理对象
-			if(bean == null){
-				//调用三级缓存中的工厂方法创建代理对象，如果不被代理则返回源对象
-				ObjectFactory objectFactory = singletonFactories.get(beanName);
-				if(objectFactory != null){
-					bean = objectFactory.getObject();
-					earlySingletonObjects.put(beanName,bean);
-					//remove三级缓存
-				}
-			}
-		}
-		return null;
-	}
+//	/**
+// 	 * 4.用三级缓存解决循环依赖
+//	 * <p>
+//	 * 目的：解耦，处理AOP
+//	 * </p>
+// 	 * 模拟getBean
+// 	 * @param beanName bean名称
+// 	 */
+//	private static Object getBean(String beanName) throws Exception {
+//		Object singleton = getSingleton(beanName);
+//		if(singleton != null){
+//			return singleton;
+//		}
+//		//标记正在创建
+//		singletonsCurrentyInCreation.add(beanName);
+//		//createBean
+//
+//		//实例化
+//		RootBeanDefinition rootBeanDefinition = (RootBeanDefinition) beanDefinitionMap.get(beanName);
+//		Class<?> cls = rootBeanDefinition.getBeanClass();
+//		Object instance = cls.newInstance();
+//		//加入到三级缓存 解耦，处理AOP
+//		singletonFactories.put(beanName,() -> {
+//			/**
+//			 * 解耦
+//			 * Spring还是希望正常的Bean在初始化后创建代理，只有当前为循环依赖时，才在实例化时创建动态代理
+//			 */
+//			return new JdkProxyBeanPostProcessor().getEarlyBeanReference(earlySingletonObjects.get(beanName),beanName);
+//		});
+//		//赋值属性
+//		Field[] fields = cls.getDeclaredFields();
+//		for(Field field : fields){
+//			field.setAccessible(true);
+//			Object bean = getBean(field.getName());
+//			field.set(instance,bean);
+//		}
+//		//初始化 -- 一般在此时创建AOP动态代理
+//		//如果二级缓存中有，就是存在循环依赖。
+//		//如果被代理了二级缓存中就是代理对象，否则就是源对象
+//		if(earlySingletonObjects.containsKey(beanName)){
+//			instance = earlySingletonObjects.get(beanName);
+//		}
+//		//加入到一级缓存中
+//		singletonObjects.put(beanName,instance);
+//		//remove 二级缓存和三级缓存
+//		return instance;
+//	}
+//
+//	/**
+//	 * 4.用三级缓存解决循环依赖
+//	 * <p>
+//	 * 目的：解耦，处理AOP
+//	 * </p>
+//	 * 从缓存池中获取对象
+//	 * @param beanName
+//	 * @return
+//	 */
+//	private static Object getSingleton(String beanName) {
+//		Object bean = singletonObjects.get(beanName);
+//		//一级缓存中不存在 && Bean正在创建（循环依赖）
+//		if(bean == null && singletonsCurrentyInCreation.contains(beanName)){
+//			//则从二级缓存中拿
+//			bean = earlySingletonObjects.get(beanName);
+//			//二级缓存中没有则调用三级缓存创建代理对象
+//			if(bean == null){
+//				//调用三级缓存中的工厂方法创建代理对象，如果不被代理则返回源对象
+//				ObjectFactory objectFactory = singletonFactories.get(beanName);
+//				if(objectFactory != null){
+//					bean = objectFactory.getObject();
+//					earlySingletonObjects.put(beanName,bean);
+//					//remove三级缓存
+//				}
+//			}
+//		}
+//		return null;
+//	}
 }

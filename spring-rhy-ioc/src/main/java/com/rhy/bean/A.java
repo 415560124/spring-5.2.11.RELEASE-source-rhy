@@ -1,21 +1,22 @@
 package com.rhy.bean;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.stereotype.Component;
 
-public class A{
+@Component
+public class A implements FactoryBean<A> {
 
 	public A() {
 		System.out.println("init A");
 	}
 
-	private B b;
-
-	public B getB() {
-		return b;
+	@Override
+	public A getObject() throws Exception {
+		return new A();
 	}
 
-	public void setB(B b) {
-		this.b = b;
+	@Override
+	public Class<A> getObjectType() {
+		return A.class;
 	}
 }

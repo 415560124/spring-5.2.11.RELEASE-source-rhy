@@ -13,16 +13,16 @@ import java.util.function.Predicate;
 @ComponentScan("com.rhy,;com.wyy")
 @Import({C.class})
 public class Config {
-	@Bean
-	public A a(){
-		A a = new A();
-		a.setB(b());
-		return a;
-	}
-	@Bean
-	public B b(){
-		return new B();
-	}
+//	@Bean
+//	public A a(){
+//		A a = new A();
+//		a.setB(b());
+//		return a;
+//	}
+//	@Bean
+//	public B b(){
+//		return new B();
+//	}
 	/**
 	 * 配置类中的嵌套类
 	 * 源码：{@link ConfigurationClassParser#doProcessConfigurationClass(ConfigurationClass, ConfigurationClassParser.SourceClass, Predicate)}=>processMemberClasses
