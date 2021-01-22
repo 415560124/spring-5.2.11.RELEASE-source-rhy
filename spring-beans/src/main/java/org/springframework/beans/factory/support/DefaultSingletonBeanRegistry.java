@@ -182,21 +182,60 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
-		// Quick check for existing instance without full singleton lock
+		/**
+		 * 第一步：去一级缓存（单例缓存池）中取，一般情况下从该Map中获取的对象是可以直接使用的
+		 */
 		Object singletonObject = this.singletonObjects.get(beanName);
+		/**
+		 * 判断如果缓存中未取到 && 正在创建 --- 此时代表产生了循环依赖
+		 */
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+			/**
+			 * 从二级缓存中查，二级缓存中对象是一个早期对象
+			 * 早期对象：实例化，但是并未进行属性赋值
+			 */
 			singletonObject = this.earlySingletonObjects.get(beanName);
+			/**
+			 * 二级缓存中未找到，还没从三级缓存中创建早期对象
+			 */
 			if (singletonObject == null && allowEarlyReference) {
+				/**
+				 * 此处为了在多线程下避免重复调用三级缓存的ObjectFactory创建对象
+				 */
 				synchronized (this.singletonObjects) {
-					// Consistent creation of early reference within full singleton lock
+					/**
+					 * 再次检查一级缓存中是否存在，避免循环依赖的误判
+					 */
 					singletonObject = this.singletonObjects.get(beanName);
+					/**
+					 * 一级缓存中依旧不存在此对象
+					 */
 					if (singletonObject == null) {
+						/**
+						 * 检查二级缓存是否已创建了早期对象
+						 */
 						singletonObject = this.earlySingletonObjects.get(beanName);
+						/**
+						 * 二级缓存中也没有创建对象
+						 */
 						if (singletonObject == null) {
+							/**
+							 * 从三级缓存中获取ObjectFactory对象，这个对象就是解决循环依赖的关键所在
+							 * 当bean调用了构造方法之后，把早期对象包装成了一个ObjectFactory
+							 */
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+							/**
+							 * 从三级缓存中获取的对象不为null
+							 */
 							if (singletonFactory != null) {
+								/**
+								 * 在这里通过执行ObjectFactory#getObject来获取我们的早期对象
+								 * 会调用getEarlyBeanReference()来进行后置处理
+								 */
 								singletonObject = singletonFactory.getObject();
+								//早期对象放入到二级缓存中
 								this.earlySingletonObjects.put(beanName, singletonObject);
+								//从三级缓存中移除
 								this.singletonFactories.remove(beanName);
 							}
 						}
