@@ -1844,10 +1844,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 
 	/**
-	 * Initialize the given bean instance, applying factory callbacks
-	 * as well as init methods and bean post processors.
-	 * <p>Called from {@link #createBean} for traditionally defined beans,
-	 * and from {@link #initializeBean} for existing bean instances.
+	 * 初始化给定的bean实例，应用工厂回调以及init方法和bean post处理器。
+	 * <p>
+	 * 从{@link #createBean}调用，用于传统定义的Bean,并从{@link #initializeBean}获取现有的Bean实例。.
 	 * @param beanName the bean name in the factory (for debugging purposes)
 	 * @param bean the new bean instance we may need to initialize
 	 * @param mbd the bean definition that the bean was created with

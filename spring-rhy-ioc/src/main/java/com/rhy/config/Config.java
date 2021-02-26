@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 @Configuration
 //@Conditional({ConditionImpl.class})
 @ComponentScan("com.rhy,;com.wyy")
-@Import({C.class})
+//@Import({C.class})
 public class Config {
 //	@Bean
 //	public A a(){

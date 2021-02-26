@@ -1,9 +1,12 @@
 package com.rhy.bean;
 
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+
 public class A implements FactoryBean<A> {
 
 	public A() {
@@ -19,4 +22,8 @@ public class A implements FactoryBean<A> {
 	public Class<A> getObjectType() {
 		return A.class;
 	}
+	@Autowired
+	B b;
+
+
 }

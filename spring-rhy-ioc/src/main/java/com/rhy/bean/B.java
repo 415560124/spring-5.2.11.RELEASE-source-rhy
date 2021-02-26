@@ -1,5 +1,7 @@
 package com.rhy.bean;
 
+import org.springframework.stereotype.Component;
+
 /**
  * @author Rhy
  * @title 测试类B
@@ -8,6 +10,7 @@ package com.rhy.bean;
  * @modifier：Rhy
  * @modification_time：2021-01-06 10:23
  */
+@Component
 public class B {
 	public B() {
 		System.out.println("init B");
