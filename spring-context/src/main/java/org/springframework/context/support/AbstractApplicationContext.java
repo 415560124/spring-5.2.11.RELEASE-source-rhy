@@ -736,6 +736,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		 * 在执行{@link AbstractAutowireCapableBeanFactory#applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)}时执行
 		 */
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+		/**
+		 * 忽略一下Bean的接口函数方法。
+		 * 在populateBean时因为以下接口都有setXXX方法，这些方法不特殊处理将会自动注入容器中的Bean
+		 */
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
@@ -745,6 +749,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// BeanFactory interface not registered as resolvable type in a plain factory.
 		// MessageSource registered (and found for autowiring) as a bean.
+		// 以下接口，允许自动装配，第一个参数是自动装配类型，第二个字段是自动装配的值
 		beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this);
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
