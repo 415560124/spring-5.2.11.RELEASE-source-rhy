@@ -897,11 +897,12 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	}
 
 	/**
-	 * Return if there are property values values defined for this bean.
+	 * 返回是否有为此bean定义的属性值
 	 * @since 5.0.2
 	 */
 	@Override
 	public boolean hasPropertyValues() {
+		//有需要赋值的属性 && 属性值对象集合非空
 		return (this.propertyValues != null && !this.propertyValues.isEmpty());
 	}
 

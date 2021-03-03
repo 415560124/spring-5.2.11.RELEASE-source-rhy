@@ -230,6 +230,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 							if (singletonFactory != null) {
 								/**
 								 * 在这里通过执行ObjectFactory#getObject来获取我们的早期对象
+								 * {@link ObjectFactory#getObject()}
 								 * 会调用getEarlyBeanReference()来进行后置处理
 								 */
 								singletonObject = singletonFactory.getObject();
