@@ -169,7 +169,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/** 从bean名称映射到合并的RootBeanDefinition. */
 	private final Map<String, RootBeanDefinition> mergedBeanDefinitions = new ConcurrentHashMap<>(256);
 
-	/** Names of beans that have already been created at least once. */
+	/**
+	 *  创建Bean的时候，不管单例还是原型，均会被标记，主要用在循环依赖无法解决的时候擦屁股用的
+	 *  */
 	private final Set<String> alreadyCreated = Collections.newSetFromMap(new ConcurrentHashMap<>(256));
 
 	/** Names of beans that are currently in creation. */
@@ -268,7 +270,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			/**
 			 * {@link Scope(prototype)}
 			 * 当前bean是否在创建中
-			 * spring只能解决单例对象的setter注入的循环依赖，不能解决构造器注入
+			 * spring只能解决单例对象的循环依赖
 			 */
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
@@ -343,7 +345,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 				// 开始创建单例bean
 				if (mbd.isSingleton()) {
-					//把 beanName和一个SingletonFactory传入，用于回调
+					//把 beanName和一个ObjectFactory传入，用于回调创建对象
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							//进入创建bean逻辑

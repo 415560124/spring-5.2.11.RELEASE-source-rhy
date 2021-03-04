@@ -531,6 +531,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			/**
 			 * 准备工作包括设置启动时间，是否激活标志位
 			 * 初始化属性源（property source）配置
+			 * 校验必输环境参数
+			 *
+			 * 1.准备刷新上下文环境
 			 */
 			prepareRefresh();
 
@@ -538,6 +541,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			/**
 			 * 获取 DefaultListableBeanFactory对象，后续会对BeanFactory设置
 			 * 在子类中启动refreshBeanFactory()的地方
+			 *
+			 * 2.获取告诉子类初始化Bean工厂，不同工厂不同实现
 			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
@@ -547,6 +552,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			 * 添加了两个后置处理器：{@link ApplicationContextAwareProcessor},{@link ApplicationListenerDetector}
 			 * 还设置了 忽略自动装配 和 允许自动装配 的接口，如果不存在某个Bean的时候，spring就自动注册singleton bean
 			 * 还设置的bean表达式解析器 等
+			 *
+			 * 3.对bean工厂进行填充属性
 			 */
 			prepareBeanFactory(beanFactory);
 
@@ -641,7 +648,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void prepareRefresh() {
 		// Switch to active.
 		this.startupDate = System.currentTimeMillis();
+		//容器关闭状态设置false
 		this.closed.set(false);
+		//容器存活状态设置true，在getBean的时候会进行校验
 		this.active.set(true);
 
 		if (logger.isDebugEnabled()) {
@@ -653,14 +662,23 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 
-		// Initialize any placeholder property sources in the context environment.
+		/**
+		 * 该方法相传在网上很多人说该方法没有用，因为这个方法是留给子类实现的，由于是对spring源码的核心设计理念没有搞清楚。
+		 * 正是由于spring提供了大量可扩展的接口给我们自己来实现，
+		 * 比如我们自己写一个类重写了initPropertySources方法，在该方法中设置了一个环境变量必输的值为A
+		 * 如果启动的时候未输入，在下面的方法就会抛出异常
+		 */
 		initPropertySources();
 
-		// Validate that all properties marked as required are resolvable:
-		// see ConfigurablePropertyResolver#setRequiredProperties
+		/**
+		 * 用来校验我们容器启动必须依赖的环境变量值
+		 */
 		getEnvironment().validateRequiredProperties();
 
-		// Store pre-refresh ApplicationListeners...
+		/**
+		 * 创建一个早期的事件监听器对象
+		 * 无需手动调用 publicEvent去发布
+		 */
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		}
@@ -691,6 +709,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		/**
+		 * xml加载spring会在这里加载beanDefinition
+		 * javaConfig只是刷新了BeanFactory
+		 */
 		refreshBeanFactory();
 		return getBeanFactory();
 	}
@@ -701,13 +723,23 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @param beanFactory the BeanFactory to configure
 	 */
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-		// Tell the internal bean factory to use the context's class loader etc.
+		// 设置bean工厂类加载器为当前application应用的加载器
 		beanFactory.setBeanClassLoader(getClassLoader());
+		//为bean工厂设置标准的SPEL表达式解析器对象{@link StandardBeanExpressionResolver}
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
+		//为bean工厂设置一个propertyEditor 属性资源编辑器对象（用于后面的给bean对象赋值使用）
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
+		/**
+		 * 注册了一个完整的ApplicationContextAwareProcessor后置处理器
+		 * 在执行{@link AbstractAutowireCapableBeanFactory#applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)}时执行
+		 */
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+		/**
+		 * 忽略一下Bean的接口函数方法。
+		 * 在populateBean时因为以下接口都有setXXX方法，这些方法不特殊处理将会自动注入容器中的Bean
+		 */
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
@@ -717,6 +749,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// BeanFactory interface not registered as resolvable type in a plain factory.
 		// MessageSource registered (and found for autowiring) as a bean.
+		// 以下接口，允许自动装配，第一个参数是自动装配类型，第二个字段是自动装配的值
 		beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this);
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
