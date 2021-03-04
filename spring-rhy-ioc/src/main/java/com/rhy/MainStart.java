@@ -2,6 +2,7 @@ package com.rhy;
 
 import com.rhy.bean.A;
 import com.rhy.config.Config;
+import com.rhy.event.OrderEvent;
 import com.rhy.service.UserService;
 import com.rhy.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -20,6 +21,8 @@ public class MainStart {
 //		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Config.class);
 		UserService userService = applicationContext.getBean(UserService.class);
 		userService.helloWorld();
+
+		applicationContext.publishEvent(new OrderEvent(applicationContext,"ioc完成"));
 
 	}
 }
