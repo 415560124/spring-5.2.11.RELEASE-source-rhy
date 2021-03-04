@@ -102,6 +102,7 @@ public class EventListenerMethodProcessor
 		ConfigurableListableBeanFactory beanFactory = this.beanFactory;
 		Assert.state(this.beanFactory != null, "No ConfigurableListableBeanFactory set");
 		String[] beanNames = beanFactory.getBeanNamesForType(Object.class);
+		// 处理所有bean，查找bean标注了@EventListener的方法
 		for (String beanName : beanNames) {
 			if (!ScopedProxyUtils.isScopedTarget(beanName)) {
 				Class<?> type = null;

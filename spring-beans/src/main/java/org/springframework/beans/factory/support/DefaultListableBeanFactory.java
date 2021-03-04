@@ -938,8 +938,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				}
 			}
 		}
+		//******************  所有单例bean已加载到单例缓存池中 **********************
 
 		// Trigger post-initialization callback for all applicable beans...
+		/**
+		 * 执行所有{@link SmartInitializingSingleton#afterSingletonsInstantiated()}
+		 */
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName);
 			if (singletonInstance instanceof SmartInitializingSingleton) {

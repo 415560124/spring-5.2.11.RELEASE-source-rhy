@@ -115,7 +115,7 @@ final class PostProcessorRegistrationDelegate {
 					 * {@link org.springframework.beans.factory.BeanFactory#getBean(String, Class)}类型必须匹配，返回beanName下的此类型实例
 					 * 实例化对象后放到当前注册后置处理器集合中去
 					 */
-					doCreateBean(beanName, mbdToUse, args);					currentRegistryProcessors.add(beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class));
+					currentRegistryProcessors.add(beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class));
 					//同时也加入到处理过的集合中去processedBeans
 					processedBeans.add(ppName);
 				}
