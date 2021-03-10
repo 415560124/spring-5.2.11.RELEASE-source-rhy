@@ -99,9 +99,13 @@ public class EventListenerMethodProcessor
 
 	@Override
 	public void afterSingletonsInstantiated() {
+		/**
+		 * 通过BeanFactory在之后获取所有的bean
+		 */
 		ConfigurableListableBeanFactory beanFactory = this.beanFactory;
 		Assert.state(this.beanFactory != null, "No ConfigurableListableBeanFactory set");
 		String[] beanNames = beanFactory.getBeanNamesForType(Object.class);
+		//查找所有Bean中标注了@EventListener的方法
 		for (String beanName : beanNames) {
 			if (!ScopedProxyUtils.isScopedTarget(beanName)) {
 				Class<?> type = null;
@@ -131,6 +135,7 @@ public class EventListenerMethodProcessor
 						}
 					}
 					try {
+						//解析bean
 						processBean(beanName, type);
 					}
 					catch (Throwable ex) {
@@ -143,12 +148,14 @@ public class EventListenerMethodProcessor
 	}
 
 	private void processBean(final String beanName, final Class<?> targetType) {
+		//已经解析过，没有@EventListener注解的 不会进入此if
 		if (!this.nonAnnotatedClasses.contains(targetType) &&
 				AnnotationUtils.isCandidateClass(targetType, EventListener.class) &&
 				!isSpringContainerClass(targetType)) {
-
+			//存放bean中标注了@EventListener方法的集合
 			Map<Method, EventListener> annotatedMethods = null;
 			try {
+				//查找当前bean标注了@EventListener的方法
 				annotatedMethods = MethodIntrospector.selectMethods(targetType,
 						(MethodIntrospector.MetadataLookup<EventListener>) method ->
 								AnnotatedElementUtils.findMergedAnnotation(method, EventListener.class));
@@ -159,8 +166,9 @@ public class EventListenerMethodProcessor
 					logger.debug("Could not resolve methods for bean with name '" + beanName + "'", ex);
 				}
 			}
-
+			//不存在@EventListener注解的方法
 			if (CollectionUtils.isEmpty(annotatedMethods)) {
+				//加入到不存在注解的类集合中，用于之前的判断
 				this.nonAnnotatedClasses.add(targetType);
 				if (logger.isTraceEnabled()) {
 					logger.trace("No @EventListener annotations found on bean class: " + targetType.getName());
@@ -176,11 +184,13 @@ public class EventListenerMethodProcessor
 					for (EventListenerFactory factory : factories) {
 						if (factory.supportsMethod(method)) {
 							Method methodToUse = AopUtils.selectInvocableMethod(method, context.getType(beanName));
+							//①创建事件监听器
 							ApplicationListener<?> applicationListener =
 									factory.createApplicationListener(beanName, targetType, methodToUse);
 							if (applicationListener instanceof ApplicationListenerMethodAdapter) {
 								((ApplicationListenerMethodAdapter) applicationListener).init(context, this.evaluator);
 							}
+							//②注册事件到context中
 							context.addApplicationListener(applicationListener);
 							break;
 						}
