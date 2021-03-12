@@ -2,7 +2,6 @@ package com.rhy.event;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,10 +12,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Lazy
-public class OrderEventListener implements ApplicationListener<OrderEvent> {
+public class OrderEventListener2 implements ApplicationListener<OrderEvent2> {
 //	@EventListener(OrderEvent.class)
 	@Override
-	public void onApplicationEvent(OrderEvent event) {
+	public void onApplicationEvent(OrderEvent2 event) {
 		System.out.println("发生订单事件：name="+event.getName());
 	}
 }

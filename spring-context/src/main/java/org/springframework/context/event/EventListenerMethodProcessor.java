@@ -88,8 +88,11 @@ public class EventListenerMethodProcessor
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
 
+		this.beanFactory = beanFactory;
+		/**
+		 * 通过Bean工厂后置处理器，将生产{@link ApplicationListenerMethodAdapter}的{@link EventListenerFactory}存起来
+		 */
 		Map<String, EventListenerFactory> beans = beanFactory.getBeansOfType(EventListenerFactory.class, false, false);
 		List<EventListenerFactory> factories = new ArrayList<>(beans.values());
 		AnnotationAwareOrderComparator.sort(factories);

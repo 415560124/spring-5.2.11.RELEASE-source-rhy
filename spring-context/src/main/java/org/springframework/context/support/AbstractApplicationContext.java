@@ -390,7 +390,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void publishEvent(Object event, @Nullable ResolvableType eventType) {
 		Assert.notNull(event, "Event must not be null");
 
-		// Decorate event as an ApplicationEvent if necessary
+		// 必要时将事件装饰为ApplicationEvent
 		ApplicationEvent applicationEvent;
 		if (event instanceof ApplicationEvent) {
 			applicationEvent = (ApplicationEvent) event;
@@ -404,13 +404,19 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Multicast right now if possible - or lazily once the multicaster is initialized
 		if (this.earlyApplicationEvents != null) {
+			/**
+			 * 如果添加早期事件的话就调用publishEvent发布早期事件
+			 * 只有当执行refresh-->registerListeners 才会将earlyApplicationEvents赋值为null，所以registerListeners之前发布的事件都是早期事件
+			 */
 			this.earlyApplicationEvents.add(applicationEvent);
 		}
 		else {
+			//调用多播器广播事件
 			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
 		}
 
 		// Publish event via parent context as well...
+		//如果存在父容器给父容器也广播一份
 		if (this.parent != null) {
 			if (this.parent instanceof AbstractApplicationContext) {
 				((AbstractApplicationContext) this.parent).publishEvent(event, eventType);
