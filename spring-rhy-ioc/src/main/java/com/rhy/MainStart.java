@@ -23,9 +23,9 @@ public class MainStart {
 		UserService userService = applicationContext.getBean(UserService.class);
 		userService.helloWorld();
 
-		applicationContext.publishEvent(new OrderEvent(applicationContext,"ioc完成1"));
-		applicationContext.publishEvent(new OrderEvent2(applicationContext,"ioc完成3"));
-		applicationContext.publishEvent(new OrderEvent(applicationContext,"ioc完成2"));
+//		applicationContext.publishEvent(new OrderEvent(applicationContext,"ioc完成1"));
+//		applicationContext.publishEvent(new OrderEvent2(applicationContext,"ioc完成3"));
+//		applicationContext.publishEvent(new OrderEvent(applicationContext,"ioc完成2"));
 
 	}
 }
