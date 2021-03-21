@@ -65,15 +65,21 @@ public class BeanFactoryAdvisorRetrievalHelper {
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> findAdvisorBeans() {
-		// Determine list of advisor bean names, if not cached already.
+		/**
+		 * 探测器缓存字段cachedAdvisorBeanNames 用来保存我们Advisor全类名
+		 * 会在第一个单实例bean中把advisor名称解析出来
+		 */
 		String[] advisorNames = this.cachedAdvisorBeanNames;
 		if (advisorNames == null) {
-			// Do not initialize FactoryBeans here: We need to leave all regular beans
-			// uninitialized to let the auto-proxy creator apply to them!
+			/**
+			 * 1.去容器中获取所有实现了{@link Advisor}接口的实现类
+			 * 2.我们事务注解@EnableTransactionManagement导入了一个叫ProxyTransactionManagementConfiguration配置类，在这个配置类中配置了
+			 */
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);
 			this.cachedAdvisorBeanNames = advisorNames;
 		}
+		//若在容器中没有找到，直接返回一个空的集合
 		if (advisorNames.length == 0) {
 			return new ArrayList<>();
 		}

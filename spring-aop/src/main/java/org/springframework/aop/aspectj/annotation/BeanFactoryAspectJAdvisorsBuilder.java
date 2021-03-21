@@ -81,33 +81,60 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> buildAspectJAdvisors() {
+		/**
+		 * 用于保存切面的名称，aspectBeanNames是类级别缓存，缓存已经解析出来的切面信息
+		 */
 		List<String> aspectNames = this.aspectBeanNames;
-
+		/**
+		 * aspectBeanNames == null发生在第一个单例Bean执行后置处理器{@link InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation(Class, String)}的时候
+		 * 第一次执行{@link AnnotationAwareAspectJAutoProxyCreator#postProcessBeforeInstantiation(Class, String)}则为null
+		 */
 		if (aspectNames == null) {
+			//加上同步锁，多线程同时加载切面的互斥锁
 			synchronized (this) {
+				//双重校验
 				aspectNames = this.aspectBeanNames;
 				if (aspectNames == null) {
+					//保存所有通知advice的集合
 					List<Advisor> advisors = new ArrayList<>();
+					//保存解析过的切面名集合
 					aspectNames = new ArrayList<>();
+					/**
+					 * 获取容器中所有的Bean，因为传入的是{@link Object}
+					 * 然后再进行一一遍历解析，这个过程十分消耗性能，所以spring在解析后保存切面信息到缓存中。
+					 * 但是事务功能是直接去容器中获取Advisor类型的，选择范围小，不消耗性能，所以spring在事务模块没有加入缓存保存我们事务相关的advisor
+					 */
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
+					//遍历容器中所有的bean名称
 					for (String beanName : beanNames) {
 						if (!isEligibleBean(beanName)) {
 							continue;
 						}
-						// We must be careful not to instantiate beans eagerly as in this case they
-						// would be cached by the Spring container but would not have been weaved.
+						/**
+						 * 通过beanName获得Class对象
+						 */
 						Class<?> beanType = this.beanFactory.getType(beanName, false);
 						if (beanType == null) {
 							continue;
 						}
+						//判断class对象是不是切面
 						if (this.advisorFactory.isAspect(beanType)) {
+							//是切面类
+
+							//加入到缓存中
 							aspectNames.add(beanName);
+							/**
+							 * 把beanName和class对象封装为{@link AspectMetadata}
+							 */
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
+								//构建切面注解的实例工厂
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+								//获取通知对象
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
+								//加入到缓存中
 								if (this.beanFactory.isSingleton(beanName)) {
 									this.advisorsCache.put(beanName, classAdvisors);
 								}

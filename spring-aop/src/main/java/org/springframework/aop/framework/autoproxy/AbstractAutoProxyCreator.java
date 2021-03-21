@@ -242,12 +242,22 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	@Override
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
+		// 构建缓存Key解析过后就将此bean加入到缓存中
 		Object cacheKey = getCacheKey(beanClass, beanName);
-
+		/**
+		 * 没有BeanName || 没有包含在targetSourcedBeans中（即已经创建过动态代理）
+		 * targetSourceBean：在Spring代理目标Bean的时候，其并不是直接创建一个目标bean的对象实例，而是通过一个TargetSource类型的对象将目标对象进行封装，Spring AOP获取目标对象始终是通过TargetSource.getTarget()方法进行的
+		 */
 		if (!StringUtils.hasLength(beanName) || !this.targetSourcedBeans.contains(beanName)) {
+			//被解析过直接返回
 			if (this.advisedBeans.containsKey(cacheKey)) {
 				return null;
 			}
+			/**
+			 * 是不是基础的bean（是不是切面类、通知、切点等） ，即实现了{@link Advice}{@link Pointcut}{@link Advisor}{@link AopInfrastructureBean}
+			 * ||
+			 * 判断是不是应该跳过（解析切面逻辑就在这里）
+			 */
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
@@ -370,6 +380,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @see #shouldSkip
 	 */
 	protected boolean isInfrastructureClass(Class<?> beanClass) {
+		/**
+		 * 如果当前创建的BeanClass是
+		 * {@link Advice}{@link Pointcut}{@link Advisor}{@link AopInfrastructureBean}
+		 * 则直接跳过不需要解析
+		 */
 		boolean retVal = Advice.class.isAssignableFrom(beanClass) ||
 				Pointcut.class.isAssignableFrom(beanClass) ||
 				Advisor.class.isAssignableFrom(beanClass) ||
