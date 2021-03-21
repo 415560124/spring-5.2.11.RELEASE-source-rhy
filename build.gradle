@@ -21,7 +21,6 @@ ext {
 		exclude group: "org.slf4j", name: "jcl-over-slf4j"
 	}
 
-	aspectjVersion       = "1.8.14"
 }
 
 configure(allprojects) { project ->

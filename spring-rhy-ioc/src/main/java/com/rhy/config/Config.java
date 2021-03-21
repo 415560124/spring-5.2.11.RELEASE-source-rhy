@@ -4,6 +4,8 @@ import com.rhy.bean.A;
 import com.rhy.bean.B;
 import com.rhy.bean.C;
 import com.rhy.extend.ConditionImpl;
+import com.rhy.importselect.MyImportBeanDefinitionRegistry;
+import com.rhy.importselect.MyImportSelector;
 import org.springframework.context.annotation.*;
 
 import java.util.function.Predicate;
@@ -11,7 +13,7 @@ import java.util.function.Predicate;
 @Configuration
 //@Conditional({ConditionImpl.class})
 @ComponentScan("com.rhy,;com.wyy")
-//@Import({C.class})
+@Import({MyImportSelector.class, MyImportBeanDefinitionRegistry.class})
 public class Config {
 //	@Bean
 //	public A a(){

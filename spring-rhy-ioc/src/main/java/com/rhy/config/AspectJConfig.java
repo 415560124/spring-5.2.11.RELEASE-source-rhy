@@ -1,5 +1,6 @@
 package com.rhy.config;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  * @slogan: 如果你想攀登高峰，切莫把彩虹当梯子
  * @description: 代理配置
  */
+@Configuration
 @EnableAspectJAutoProxy
 public class AspectJConfig {
 
