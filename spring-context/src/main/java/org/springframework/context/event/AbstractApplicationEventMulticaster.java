@@ -200,7 +200,7 @@ public abstract class AbstractApplicationEventMulticaster
 			// If result is null, the existing retriever is not fully populated yet by another thread.
 			// Proceed like caching wasn't possible for this current local attempt.
 		}
-
+		//根据事件类型解析出所有对应的监听器
 		return retrieveApplicationListeners(eventType, sourceType, newRetriever);
 	}
 
@@ -221,17 +221,21 @@ public abstract class AbstractApplicationEventMulticaster
 		Set<ApplicationListener<?>> listeners;
 		Set<String> listenerBeans;
 		synchronized (this.defaultRetriever) {
+			//当前所有实例化监听器的缓存
 			listeners = new LinkedHashSet<>(this.defaultRetriever.applicationListeners);
+			//当前所有监听器的名字缓存
 			listenerBeans = new LinkedHashSet<>(this.defaultRetriever.applicationListenerBeans);
 		}
 
 		// Add programmatically registered listeners, including ones coming
 		// from ApplicationListenerDetector (singleton beans and inner beans).
 		for (ApplicationListener<?> listener : listeners) {
+			//当前监听器是否监听发布的事件
 			if (supportsEvent(listener, eventType, sourceType)) {
 				if (retriever != null) {
 					filteredListeners.add(listener);
 				}
+				//如果是就加入到allListeners 用来在底下判断这个事件已经处理过了
 				allListeners.add(listener);
 			}
 		}
@@ -242,9 +246,12 @@ public abstract class AbstractApplicationEventMulticaster
 			ConfigurableBeanFactory beanFactory = getBeanFactory();
 			for (String listenerBeanName : listenerBeans) {
 				try {
+					//判断当前监听器是否监听本事件
 					if (supportsEvent(beanFactory, listenerBeanName, eventType)) {
+						//懒加载的bean会在这里创建
 						ApplicationListener<?> listener =
 								beanFactory.getBean(listenerBeanName, ApplicationListener.class);
+						//判断当前监听器实例是否监听本事件
 						if (!allListeners.contains(listener) && supportsEvent(listener, eventType, sourceType)) {
 							if (retriever != null) {
 								if (beanFactory.isSingleton(listenerBeanName)) {

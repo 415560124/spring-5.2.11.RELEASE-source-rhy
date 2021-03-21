@@ -390,7 +390,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void publishEvent(Object event, @Nullable ResolvableType eventType) {
 		Assert.notNull(event, "Event must not be null");
 
-		// Decorate event as an ApplicationEvent if necessary
+		// 必要时将事件装饰为ApplicationEvent
 		ApplicationEvent applicationEvent;
 		if (event instanceof ApplicationEvent) {
 			applicationEvent = (ApplicationEvent) event;
@@ -404,13 +404,19 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Multicast right now if possible - or lazily once the multicaster is initialized
 		if (this.earlyApplicationEvents != null) {
+			/**
+			 * 如果添加早期事件的话就调用publishEvent发布早期事件
+			 * 只有当执行refresh-->registerListeners 才会将earlyApplicationEvents赋值为null，所以registerListeners之前发布的事件都是早期事件
+			 */
 			this.earlyApplicationEvents.add(applicationEvent);
 		}
 		else {
+			//调用多播器广播事件
 			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
 		}
 
 		// Publish event via parent context as well...
+		//如果存在父容器给父容器也广播一份
 		if (this.parent != null) {
 			if (this.parent instanceof AbstractApplicationContext) {
 				((AbstractApplicationContext) this.parent).publishEvent(event, eventType);
@@ -533,7 +539,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			 * 初始化属性源（property source）配置
 			 * 校验必输环境参数
 			 *
-			 * 1.准备刷新上下文环境
+			 * 1.准备刷新上下文环境   声明早期的监听器和事件，不需要手动调用publishEvent
 			 */
 			prepareRefresh();
 
@@ -553,7 +559,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			 * 还设置了 忽略自动装配 和 允许自动装配 的接口，如果不存在某个Bean的时候，spring就自动注册singleton bean
 			 * 还设置的bean表达式解析器 等
 			 *
-			 * 3.对bean工厂进行填充属性
+			 * 3.对bean工厂进行填充属性 注册解析接口方式的监听器{@link ApplicationListenerDetector}
 			 */
 			prepareBeanFactory(beanFactory);
 
@@ -561,6 +567,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Allows post-processing of the bean factory in context subclasses.  允许执行bean工厂的后置处理器在上下文子类中
 				/**
 				 * 空方法
+				 * 留给其他容器上下文扩展
 				 */
 				postProcessBeanFactory(beanFactory);
 
@@ -584,7 +591,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				initMessageSource();
 
 				/**
-				 * 初始化上下文中的事件机制
+				 * 创建事件多播器  管理所有的监听器
 				 */
 				initApplicationEventMulticaster();
 
@@ -595,7 +602,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				onRefresh();
 
 				/**
-				 * 检查监听bean并且将这些bean向容器注册
+				 * 把事件注册到监听器上
 				 */
 				registerListeners();
 
@@ -869,7 +876,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 		else {
+			//创建事件多播器
 			this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+			//注册我们的事件多播器
 			beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No '" + APPLICATION_EVENT_MULTICASTER_BEAN_NAME + "' bean, using " +
@@ -920,23 +929,33 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Doesn't affect other listeners, which can be added without being beans.
 	 */
 	protected void registerListeners() {
-		// Register statically specified listeners first.
+		/**
+		 * 获取容器中所有的监听器对象
+		 * 通过{@link AnnotationConfigApplicationContext#addApplicationListener(ApplicationListener)}添加的
+		 */
 		for (ApplicationListener<?> listener : getApplicationListeners()) {
+			//注册到事件多播器中
 			getApplicationEventMulticaster().addApplicationListener(listener);
 		}
 
-		// Do not initialize FactoryBeans here: We need to leave all regular beans
-		// uninitialized to let post-processors apply to them!
+		/**
+		 * 获取Bean定义中监听器对象：基于接口的方式注册的对象
+		 */
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
+		/**
+		 * 把监听器的名称注册到我们多播器上
+		 */
 		for (String listenerBeanName : listenerBeanNames) {
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 
-		// Publish early application events now that we finally have a multicaster...
+		// 获取我们的早期事件
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
+		// 早期事件清空，执行完后就没有早期事件了
 		this.earlyApplicationEvents = null;
 		if (!CollectionUtils.isEmpty(earlyEventsToProcess)) {
 			for (ApplicationEvent earlyEvent : earlyEventsToProcess) {
+				//依次执行早期事件
 				getApplicationEventMulticaster().multicastEvent(earlyEvent);
 			}
 		}
