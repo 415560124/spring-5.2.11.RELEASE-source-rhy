@@ -187,6 +187,7 @@ public class EventListenerMethodProcessor
 						}
 					}
 				}
+
 				if (logger.isDebugEnabled()) {
 					logger.debug(annotatedMethods.size() + " @EventListener methods processed on bean '" +
 							beanName + "': " + annotatedMethods);
