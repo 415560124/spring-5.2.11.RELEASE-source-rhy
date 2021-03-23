@@ -95,6 +95,7 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 			//解析标记了@AspectJ注解的切面类，封装advisors集合
 			advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors());
 		}
+		//返回所有封装的Advisor通知
 		return advisors;
 	}
 

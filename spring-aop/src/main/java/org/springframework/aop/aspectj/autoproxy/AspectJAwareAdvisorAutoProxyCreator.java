@@ -102,6 +102,11 @@ public class AspectJAwareAdvisorAutoProxyCreator extends AbstractAdvisorAutoProx
 		 */
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
 		for (Advisor advisor : candidateAdvisors) {
+			/**
+			 * 判断这个类的原因在于：
+			 * {@link AspectJPointcutAdvisor}是xml：<aop:advisor>解析的对象
+			 * 如果<aop:aspect ref="beanName"> 是当前beanName就说明当前是切面类 那就跳过
+			 */
 			if (advisor instanceof AspectJPointcutAdvisor &&
 					((AspectJPointcutAdvisor) advisor).getAspectName().equals(beanName)) {
 				return true;
