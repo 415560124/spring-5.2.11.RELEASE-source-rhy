@@ -74,8 +74,11 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	@Nullable
 	protected Object[] getAdvicesAndAdvisorsForBean(
 			Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
-
+		/**
+		 * 找到和当前bean匹配的advisor
+		 */
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
+		//如果没找到不创建动态代理
 		if (advisors.isEmpty()) {
 			return DO_NOT_PROXY;
 		}
@@ -95,9 +98,11 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
 		//拿到所有的Advisor（第一次解析切面后拿取，第二次则从解析后的缓存中拿）
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
-		//
+		//判断Advisor能不能作用到当前类上（切点是否能命中）
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+		//加入一个扩展的advisor，这个advisor作用就是把当前代理类给AopContext中的ThreadLocal放进去
 		extendAdvisors(eligibleAdvisors);
+		//对advisors进行排序
 		if (!eligibleAdvisors.isEmpty()) {
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
 		}
@@ -117,8 +122,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	}
 
 	/**
-	 * Search the given candidate Advisors to find all Advisors that
-	 * can apply to the specified bean.
+	 * 判断通知advisors是否能作用到当前正在创建的类上
 	 * @param candidateAdvisors the candidate Advisors
 	 * @param beanClass the target's bean class
 	 * @param beanName the target's bean name
@@ -127,12 +131,14 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 */
 	protected List<Advisor> findAdvisorsThatCanApply(
 			List<Advisor> candidateAdvisors, Class<?> beanClass, String beanName) {
-
+		//用来记录当前正在创建的被代理对象的名称
 		ProxyCreationContext.setCurrentProxiedBeanName(beanName);
 		try {
+			//从候选的通知器中找到当前Bean关联的Advisors
 			return AopUtils.findAdvisorsThatCanApply(candidateAdvisors, beanClass);
 		}
 		finally {
+			//从ThreadLocal中清除当前正在创建的beanName代理名称
 			ProxyCreationContext.setCurrentProxiedBeanName(null);
 		}
 	}
