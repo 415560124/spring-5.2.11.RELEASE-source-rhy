@@ -74,9 +74,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 
 
 	/**
-	 * Look for AspectJ-annotated aspect beans in the current bean factory,
-	 * and return to a list of Spring AOP Advisors representing them.
-	 * <p>Creates a Spring Advisor for each AspectJ advice method.
+	 * 去容器中获取所有切面信息保存到缓存中
 	 * @return the list of {@link org.springframework.aop.Advisor} beans
 	 * @see #isEligibleBean
 	 */
@@ -121,7 +119,6 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						//判断class对象是不是切面
 						if (this.advisorFactory.isAspect(beanType)) {
 							//是切面类
-
 							//加入到缓存中
 							aspectNames.add(beanName);
 							/**
