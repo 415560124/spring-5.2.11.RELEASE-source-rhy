@@ -16,19 +16,18 @@
 
 package org.springframework.aop.aspectj.annotation;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.aspectj.lang.reflect.PerClauseKind;
-
 import org.springframework.aop.Advisor;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Helper for retrieving @AspectJ beans from a BeanFactory and building
@@ -74,10 +73,8 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 
 
 	/**
-	 * Look for AspectJ-annotated aspect beans in the current bean factory,
-	 * and return to a list of Spring AOP Advisors representing them.
-	 * <p>Creates a Spring Advisor for each AspectJ advice method.
-	 * @return the list of {@link org.springframework.aop.Advisor} beans
+	 * 去容器中获取所有切面信息保存到缓存中
+	 * @return the list of {@link Advisor} beans
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> buildAspectJAdvisors() {
@@ -121,7 +118,6 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						//判断class对象是不是切面
 						if (this.advisorFactory.isAspect(beanType)) {
 							//是切面类
-
 							//加入到缓存中
 							aspectNames.add(beanName);
 							/**
@@ -156,7 +152,9 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 							}
 						}
 					}
+					//缓存所有的切面名称
 					this.aspectBeanNames = aspectNames;
+					//返回解析的advisor
 					return advisors;
 				}
 			}
@@ -166,10 +164,6 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 			return Collections.emptyList();
 		}
 		List<Advisor> advisors = new ArrayList<>();
-		/**
-		 * 创建完切面后将缓存中的切面Map<beanName,List<Advisor>> => List<Advisor>返回
-		 * 真正创建切面的时候，不需要去解析而是去缓存中获取
-		 */
 		for (String aspectName : aspectNames) {
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);
 			if (cachedAdvisors != null) {
