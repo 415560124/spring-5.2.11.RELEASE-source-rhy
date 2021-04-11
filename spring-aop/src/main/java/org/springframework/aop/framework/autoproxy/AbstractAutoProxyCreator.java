@@ -242,7 +242,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	@Override
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
-		// 构建缓存Key解析过后就将此bean加入到缓存中
+		// 构建切面缓存Key解析过后就将此bean加入到缓存中
 		Object cacheKey = getCacheKey(beanClass, beanName);
 		/**
 		 * 没有BeanName || 没有包含在targetSourcedBeans中（即已经创建过动态代理）
