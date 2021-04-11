@@ -153,7 +153,9 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 							}
 						}
 					}
+					//缓存所有的切面名称
 					this.aspectBeanNames = aspectNames;
+					//返回解析的advisor
 					return advisors;
 				}
 			}
