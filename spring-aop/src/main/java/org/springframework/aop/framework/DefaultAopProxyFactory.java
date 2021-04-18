@@ -63,7 +63,7 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 			return new ObjenesisCglibAopProxy(config);
 		}
 		else {
-			//没有接口使用的就是jdk动态代理
+			//使用jdk动态代理
 			return new JdkDynamicAopProxy(config);
 		}
 	}

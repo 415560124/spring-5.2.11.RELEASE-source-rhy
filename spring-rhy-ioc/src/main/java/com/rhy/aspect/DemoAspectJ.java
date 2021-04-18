@@ -1,6 +1,7 @@
 package com.rhy.aspect;
 
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
 
@@ -41,8 +42,11 @@ public class DemoAspectJ {
 		String methodName = joinPoint.getSignature().getName();
 		System.out.println("执行目标方法【"+methodName+"】的<异常通知>,入参"+Arrays.asList(joinPoint.getArgs()));
 	}
-
-	public void hello(){
-
+	@Around(value = "pointcut()")
+	public void methodAround(ProceedingJoinPoint point) throws Throwable {
+		String methodName = point.getSignature().getName();
+		System.out.println("执行目标方法【"+methodName+"】的<环绕通知开始>,入参"+Arrays.asList(point.getArgs()));
+		point.proceed();
+		System.out.println("执行目标方法【"+methodName+"】的<环绕通知结束>,入参"+Arrays.asList(point.getArgs()));
 	}
 }
