@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * @modifier：Rhy
  * @modification_time：2021-01-06 10:23
  */
-@Component
+//@Component
 public class B {
 	public B() {
 		System.out.println("init B");

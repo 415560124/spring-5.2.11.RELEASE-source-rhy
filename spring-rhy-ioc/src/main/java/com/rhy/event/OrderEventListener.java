@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * @slogan: 如果你想攀登高峰，切莫把彩虹当梯子
  * @description: 订单事件监听器
  */
-@Component
+//@Component
 @Lazy
 public class OrderEventListener implements ApplicationListener<OrderEvent> {
 //	@EventListener(OrderEvent.class)

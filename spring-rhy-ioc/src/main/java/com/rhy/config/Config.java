@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 @Configuration
 //@Conditional({ConditionImpl.class})
 @ComponentScan("com.rhy,;com.wyy")
-@Import({MyImportSelector.class, MyImportBeanDefinitionRegistry.class})
+//@Import({MyImportSelector.class, MyImportBeanDefinitionRegistry.class})
 public class Config {
 //	@Bean
 //	public A a(){
