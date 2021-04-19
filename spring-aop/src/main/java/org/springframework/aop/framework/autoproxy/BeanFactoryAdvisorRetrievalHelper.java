@@ -73,7 +73,8 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		if (advisorNames == null) {
 			/**
 			 * 1.去容器中获取所有实现了{@link Advisor}接口的实现类
-			 * 2.我们事务注解@EnableTransactionManagement导入了一个叫ProxyTransactionManagementConfiguration配置类，在这个配置类中配置了
+			 * 2.我们事务注解@EnableTransactionManagement导入了一个叫ProxyTransactionManagementConfiguration配置类。
+			 * 在这个配置类中配置了{@link BeanFactoryTransactionAttributeSourceAdvisor}用于事务的Advisor
 			 */
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);
