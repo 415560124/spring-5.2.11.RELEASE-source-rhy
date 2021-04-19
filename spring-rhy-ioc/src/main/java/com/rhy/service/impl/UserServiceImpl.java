@@ -3,7 +3,7 @@ package com.rhy.service.impl;
 import com.rhy.service.UserService;
 import org.springframework.stereotype.Service;
 
-@Service
+//@Service
 public class UserServiceImpl implements UserService {
 
 	@Override

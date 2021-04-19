@@ -212,9 +212,7 @@ public abstract class AopUtils {
 	}
 
 	/**
-	 * Can the given pointcut apply at all on the given class?
-	 * <p>This is an important test as it can be used to optimize
-	 * out a pointcut for a class.
+	 * advisor是否能匹配targetClass?
 	 * @param pc the static or dynamic pointcut to check
 	 * @param targetClass the class to test
 	 * @param hasIntroductions whether or not the advisor chain
@@ -223,33 +221,52 @@ public abstract class AopUtils {
 	 */
 	public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
 		Assert.notNull(pc, "Pointcut must not be null");
+		//进行初筛-类级别过滤（通过AspectJ）
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
 		}
-
+		/**
+		 * 进行方法级别过滤
+		 * 如果pc.getMethodMatcher返回TrueMethodMatcher则匹配所有方法
+		 * 但是AspectJ返回的是切点表达式
+		 */
 		MethodMatcher methodMatcher = pc.getMethodMatcher();
 		if (methodMatcher == MethodMatcher.TRUE) {
 			// No need to iterate the methods if we're matching any method anyway...
 			return true;
 		}
-
+		//只有AsectJExpressionPointcut才会实现这个接口
 		IntroductionAwareMethodMatcher introductionAwareMethodMatcher = null;
 		if (methodMatcher instanceof IntroductionAwareMethodMatcher) {
 			introductionAwareMethodMatcher = (IntroductionAwareMethodMatcher) methodMatcher;
 		}
-
+		//创建一个集合用于保存targetClass的class对象
 		Set<Class<?>> classes = new LinkedHashSet<>();
+		//判断当前class是不是代理的class对象
+		//里面竟然用了弱引用
 		if (!Proxy.isProxyClass(targetClass)) {
+			//如果是则加入到集合中去
 			classes.add(ClassUtils.getUserClass(targetClass));
 		}
+		/**
+		 * 获取到targetClass实现的接口class对象，加入到集合中去
+		 * 事务中有作用。因为@Transaction是可以写在接口上的
+		 */
 		classes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetClass));
 
+		//循环所有的class对象
 		for (Class<?> clazz : classes) {
+			//通过class对象获取到所有方法
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
+			//循环我们的方法
 			for (Method method : methods) {
+				//通过methodMatchor.matches匹配方法
 				if (introductionAwareMethodMatcher != null ?
+						//通过切点表达式进行匹配 AspectJ方式，进行精筛
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
+						//通过方法匹配器进行匹配 内置AOP接口方式
 						methodMatcher.matches(method, targetClass)) {
+					//只要有一个方法匹配上了就创建代理
 					return true;
 				}
 			}
@@ -281,11 +298,15 @@ public abstract class AopUtils {
 	 * @return whether the pointcut can apply on any method
 	 */
 	public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions) {
+		//判断是否为引用的Advisor：IntroductionAdvisor
 		if (advisor instanceof IntroductionAdvisor) {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
+		//@Before @After @AfterReturn @AfterThrowing
 		else if (advisor instanceof PointcutAdvisor) {
+			//转为PointcutAdvisor
 			PointcutAdvisor pca = (PointcutAdvisor) advisor;
+			//找到符合切点的Advisor
 			return canApply(pca.getPointcut(), targetClass, hasIntroductions);
 		}
 		else {
@@ -295,29 +316,35 @@ public abstract class AopUtils {
 	}
 
 	/**
-	 * Determine the sublist of the {@code candidateAdvisors} list
-	 * that is applicable to the given class.
+	 * 找到合适的增强器对象
 	 * @param candidateAdvisors the Advisors to evaluate
 	 * @param clazz the target class
 	 * @return sublist of Advisors that can apply to an object of the given class
 	 * (may be the incoming List as-is)
 	 */
 	public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvisors, Class<?> clazz) {
+		//没有通知直接返回
 		if (candidateAdvisors.isEmpty()) {
 			return candidateAdvisors;
 		}
+		//定义一个匹配到的增强器集合对象
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
+		//循环增强器对象
 		for (Advisor candidate : candidateAdvisors) {
+			//判断增强器是不是实现了IntroductionAdvisor（引用的增强器对象）
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
 			}
 		}
+		//引用的增强器是否匹配到了对象
 		boolean hasIntroductions = !eligibleAdvisors.isEmpty();
+		//除了引用之外的@Before @After @AfterReturn @Around @AfterThrowing
 		for (Advisor candidate : candidateAdvisors) {
 			if (candidate instanceof IntroductionAdvisor) {
 				// already processed
 				continue;
 			}
+			//判断Bean是否符合advisor增强
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}

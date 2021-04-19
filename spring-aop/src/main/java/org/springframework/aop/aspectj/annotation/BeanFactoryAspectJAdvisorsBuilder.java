@@ -164,6 +164,10 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 			return Collections.emptyList();
 		}
 		List<Advisor> advisors = new ArrayList<>();
+		/**
+		 * 创建完切面后将缓存中的切面Map<beanName,List<Advisor>> => List<Advisor>返回
+		 * 真正创建切面的时候，不需要去解析而是去缓存中获取
+		 */
 		for (String aspectName : aspectNames) {
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);
 			if (cachedAdvisors != null) {

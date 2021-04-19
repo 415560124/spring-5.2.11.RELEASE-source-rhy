@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * @modifier：Rhy
  * @modification_time：2021-01-05 17:04
  */
-@Component
+//@Component
 public class MyBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
 
 	@Override

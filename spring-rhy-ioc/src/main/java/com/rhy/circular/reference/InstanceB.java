@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * @modifier：Rhy
  * @modification_time：2021-01-13 17:02
  */
-@Component
+//@Component
 public class InstanceB {
 	@Autowired
 	private InstanceA instanceA;

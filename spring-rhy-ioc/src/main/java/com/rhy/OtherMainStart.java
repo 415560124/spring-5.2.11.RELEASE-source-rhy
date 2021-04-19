@@ -7,4 +7,16 @@ package com.rhy;
  * @description: 其他测试用的mainstart
  */
 public class OtherMainStart {
+	public static void main(String[] args) {
+		OtherMainStart otherMainStart = new OtherMainStart();
+		System.out.println(otherMainStart.test());
+	}
+	public int test(){
+		try{
+			System.out.println(1);
+			return 2;
+		}finally {
+			System.out.println(3);
+		}
+	}
 }

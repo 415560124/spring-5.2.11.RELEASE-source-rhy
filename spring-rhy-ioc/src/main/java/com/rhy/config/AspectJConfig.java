@@ -10,7 +10,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  * @description: 代理配置
  */
 @Configuration
-@EnableAspectJAutoProxy
+@EnableAspectJAutoProxy(exposeProxy = true)
+//(proxyTargetClass = true)//强制使用CGLIB
 public class AspectJConfig {
 
 }

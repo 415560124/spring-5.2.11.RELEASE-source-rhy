@@ -233,16 +233,28 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		return null;
 	}
 
+	/**
+	 * 加入到 早期代理引用集合 中，并创建动态代理
+	 * @param bean the raw bean instance
+	 * @param beanName the name of the bean
+	 * @return
+	 */
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
+		//获得缓存key
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
+		/**
+		 * 将源对象放入earlyProxyReferences集合中，
+		 * 在{@link #postProcessAfterInitialization(Object, String)}方法中，会先判断该集合是否存在，不存在再创建动态代理
+		 */
 		this.earlyProxyReferences.put(cacheKey, bean);
+		////返回创建的动态代理
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
 
 	@Override
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
-		// 构建缓存Key解析过后就将此bean加入到缓存中
+		// 构建切面缓存Key解析过后就将此bean加入到缓存中
 		Object cacheKey = getCacheKey(beanClass, beanName);
 		/**
 		 * 没有BeanName || 没有包含在targetSourcedBeans中（即已经创建过动态代理）
@@ -297,15 +309,20 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
-	 * Create a proxy with the configured interceptors if the bean is
-	 * identified as one to proxy by the subclass.
+	 * 判断 早期代理引用集合 中是否存在此Bean，不存在则创建动态代理
 	 * @see #getAdvicesAndAdvisorsForBean
 	 */
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
+			//获取Bean的缓存key
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
+			/**
+			 * earlyProxyReferences：存放循环依赖的目标Bean。
+			 * 循环依赖的情况下会调用{@link #getEarlyBeanReference(Object, String)}创建动态代理
+			 */
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
+				//返回创建的动态代理
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -335,31 +352,39 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
-	 * Wrap the given bean if necessary, i.e. if it is eligible for being proxied.
+	 * 找到匹配的Advisors，存在则创建动态代理
 	 * @param bean the raw bean instance
 	 * @param beanName the name of the bean
 	 * @param cacheKey the cache key for metadata access
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+		//判断bean是否已经被处理过（解析切面时targetSourcedBeans出现过） 就是自己实现创建动态代理逻辑
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
+		//判断是否不需要增强，在第一个Bean后置处理器的时候会把不需要增强可以跳过的类会放到advisedBeans集合中
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
+		//重复判断  因为在循环依赖的时候是可以改变Bean的
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;
 		}
 
-		// Create proxy if we have advice.
+		// 根据当前bean找到匹配的advisor
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
+		//当前Bean匹配到了advisors
 		if (specificInterceptors != DO_NOT_PROXY) {
+			//标记为已处理
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+			//创建代理
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
+			//加入到缓存中
 			this.proxyTypes.put(cacheKey, proxy.getClass());
+			//返回代理对象
 			return proxy;
 		}
 
@@ -444,7 +469,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
-	 * Create an AOP proxy for the given bean.
+	 * 给Bean创建AOP动态代理
 	 * @param beanClass the class of the bean
 	 * @param beanName the name of the bean
 	 * @param specificInterceptors the set of interceptors that is
@@ -460,29 +485,38 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
-
+		//创建代理工厂
 		ProxyFactory proxyFactory = new ProxyFactory();
 		proxyFactory.copyFrom(this);
 
+		/**
+		 * 为proxyFactory设置创建jdk代理还是cglib代理
+		 * {@code @EnableAspectJAutoProxy} 中proxyTargetClass指定的值,可以确定是否强制使用cglib代理
+		 */
 		if (!proxyFactory.isProxyTargetClass()) {
+			//内部设置的，配置类会设置这个属性
 			if (shouldProxyTargetClass(beanClass, beanName)) {
 				proxyFactory.setProxyTargetClass(true);
 			}
 			else {
+				//检查有没有接口
 				evaluateProxyInterfaces(beanClass, proxyFactory);
 			}
 		}
-
+		//转为advisors数组
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
+		//代理工厂添加Advisor通知器
 		proxyFactory.addAdvisors(advisors);
+		//设置target目标对象
 		proxyFactory.setTargetSource(targetSource);
 		customizeProxyFactory(proxyFactory);
-
+		//代表之前是否筛选advisor
+		//因为继承了AbstractAdvisorAutoProxyCreator，并且之前调用了findEligibleAdvisors进行筛选，所以是true
 		proxyFactory.setFrozen(this.freezeProxy);
 		if (advisorsPreFiltered()) {
 			proxyFactory.setPreFiltered(true);
 		}
-
+		//真正创建代理对象
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 
