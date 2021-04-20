@@ -90,4 +90,34 @@ public class TransactionConfig {
 		return source;
 	}
 
+	/**
+	 * 按名称匹配的TransactionAttributeSource
+	 * @return
+	 */
+//	@Bean
+    public TransactionAttributeSource transactionAttributeSource(){
+    	Map<String, TransactionAttribute> txMap = new HashMap<>();
+		//增删改
+		RuleBasedTransactionAttribute ruleBasedTransactionAttribute = new RuleBasedTransactionAttribute();
+		ruleBasedTransactionAttribute.setRollbackRules(Collections.singletonList(new RollbackRuleAttribute(Exception.class)));
+		ruleBasedTransactionAttribute.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		txMap.put("add*",ruleBasedTransactionAttribute);
+		txMap.put("save*",ruleBasedTransactionAttribute);
+		txMap.put("insert*",ruleBasedTransactionAttribute);
+		txMap.put("update*",ruleBasedTransactionAttribute);
+		txMap.put("delete*",ruleBasedTransactionAttribute);
+
+		//查询用于只读事务
+		RuleBasedTransactionAttribute readOnly = new RuleBasedTransactionAttribute();
+		readOnly.setReadOnly(true);
+		readOnly.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		txMap.put("get*",readOnly);
+		txMap.put("query*",readOnly);
+
+		NameMatchTransactionAttributeSource source = new NameMatchTransactionAttributeSource();
+		source.setNameMap(txMap);
+
+		return source;
+	}
+
 }
