@@ -314,6 +314,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 	}
 
 	/**
+	 * <p>创建一个新的MergedAnnotations实例，该实例包含指定元素中的所有注解和元注解，并取决于SearchStrategy，相关的继承元素</p>
 	 * Create a new {@link MergedAnnotations} instance containing all
 	 * annotations and meta-annotations from the specified element and,
 	 * depending on the {@link SearchStrategy}, related inherited elements.
@@ -331,6 +332,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 	}
 
 	/**
+	 * <p>创建一个新的MergedAnnotations实例，该实例包含指定元素中的所有注解和元注解，并取决于SearchStrategy，相关的继承元素</p>
 	 * Create a new {@link MergedAnnotations} instance containing all
 	 * annotations and meta-annotations from the specified element and,
 	 * depending on the {@link SearchStrategy}, related inherited elements.
@@ -468,9 +470,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		SUPERCLASS,
 
 		/**
-		 * Perform a full search of the entire type hierarchy, including
-		 * superclasses and implemented interfaces. Superclass annotations do
-		 * not need to be meta-annotated with {@link Inherited @Inherited}.
+		 * 对整个类型层次进行完整搜索，包括超类和已实现的接口。超类注解不需要使用@Inherited进行元注解。
 		 */
 		TYPE_HIERARCHY,
 

@@ -45,6 +45,7 @@ public abstract class StaticMethodMatcherPointcut extends StaticMethodMatcher im
 
 	@Override
 	public ClassFilter getClassFilter() {
+		//永远返回true的ClassFilter
 		return this.classFilter;
 	}
 
