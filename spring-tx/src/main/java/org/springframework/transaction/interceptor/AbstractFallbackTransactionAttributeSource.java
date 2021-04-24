@@ -111,7 +111,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 			}
 		}
 		else {
-			// 查找事务注解
+			// 解析事务注解
 			TransactionAttribute txAttr = computeTransactionAttribute(method, targetClass);
 			// 解析的事务为空
 			if (txAttr == null) {
@@ -172,7 +172,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 			return txAttr;
 		}
 
-		// 第二部：去目标方法的类上找事务注解
+		// 第二步：去目标方法的类上找事务注解
 		txAttr = findTransactionAttribute(specificMethod.getDeclaringClass());
 		if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 			return txAttr;
@@ -180,12 +180,12 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 
 		//目标方法不是当前方法，说明当前方法是接口方法
 		if (specificMethod != method) {
-			// 去实现类的接口上方法找事务注解
+			// 第三步：去传入方法找事务注解
 			txAttr = findTransactionAttribute(method);
 			if (txAttr != null) {
 				return txAttr;
 			}
-			// 去实现类的接口上找事务注解
+			// 第四步：去传入方法的类上找事务注解
 			txAttr = findTransactionAttribute(method.getDeclaringClass());
 			if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 				return txAttr;
