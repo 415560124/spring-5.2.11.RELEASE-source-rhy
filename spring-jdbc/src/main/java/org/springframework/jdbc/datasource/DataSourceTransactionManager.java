@@ -236,62 +236,78 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 
 	@Override
 	protected Object doGetTransaction() {
+		//创建一个数据源事务对象
 		DataSourceTransactionObject txObject = new DataSourceTransactionObject();
+		//是否允许当前事务设置savepoint
 		txObject.setSavepointAllowed(isNestedTransactionAllowed());
+		/**
+		 * TransactionSynchronizationManager 事务同步管理器对象（该对象中都是线程局部变量）
+		 * 用来保存当前激活的事务信息，第一次从这里获取的时候肯定是个null。如果存在嵌套事务则获取的是上一次的连接
+		 */
 		ConnectionHolder conHolder =
 				(ConnectionHolder) TransactionSynchronizationManager.getResource(obtainDataSource());
 		txObject.setConnectionHolder(conHolder, false);
+		//返回事务对象
 		return txObject;
 	}
 
 	@Override
 	protected boolean isExistingTransaction(Object transaction) {
+		//转为数据源事务对象
 		DataSourceTransactionObject txObject = (DataSourceTransactionObject) transaction;
+		//是否存在connectionHolder && connectionHolder的事务激活状态是否为true
 		return (txObject.hasConnectionHolder() && txObject.getConnectionHolder().isTransactionActive());
 	}
 
 	@Override
 	protected void doBegin(Object transaction, TransactionDefinition definition) {
+		//DataSource强制转为事务对象
 		DataSourceTransactionObject txObject = (DataSourceTransactionObject) transaction;
 		Connection con = null;
 
 		try {
+			//没有数据库连接持有器 || 数据库连接持有器是同步的
 			if (!txObject.hasConnectionHolder() ||
 					txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
+				//通过数据源获得一个数据库连接对象
 				Connection newCon = obtainDataSource().getConnection();
 				if (logger.isDebugEnabled()) {
 					logger.debug("Acquired Connection [" + newCon + "] for JDBC transaction");
 				}
+				//把数据库连接包装为ConnectionHolder放到事务对象中去，newConnectionHolder属性在抛出异常时用于判断
 				txObject.setConnectionHolder(new ConnectionHolder(newCon), true);
 			}
-
+			//标记当前的连接是一个同步事务...?
 			txObject.getConnectionHolder().setSynchronizedWithTransaction(true);
+			//获得持有器中的连接
 			con = txObject.getConnectionHolder().getConnection();
-
+			//设置readOnly和事务隔离级别，在里面直接给connect设置了事务隔离级别
 			Integer previousIsolationLevel = DataSourceUtils.prepareConnectionForTransaction(con, definition);
 			txObject.setPreviousIsolationLevel(previousIsolationLevel);
 			txObject.setReadOnly(definition.isReadOnly());
 
-			// Switch to manual commit if necessary. This is very expensive in some JDBC drivers,
-			// so we don't want to do it unnecessarily (for example if we've explicitly
-			// configured the connection pool to set it already).
+			// 如有必要，请切换为手动提交。在某些JDBC驱动程序中，这是非常昂贵的，因此我们不需要不必要的操作（例如，如果我们已经明确配置了连接池以进行设置）。
+			// 设置自动提交事务为false
 			if (con.getAutoCommit()) {
+				//设置必须恢复自动提交为true
 				txObject.setMustRestoreAutoCommit(true);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Switching JDBC Connection [" + con + "] to manual commit");
 				}
+				//自动提交设置false
 				con.setAutoCommit(false);
 			}
-
+			//设置readOnly的Statement
 			prepareTransactionalConnection(con, definition);
+			//设置事务激活状态
 			txObject.getConnectionHolder().setTransactionActive(true);
-
+			//设置事务超时时间
 			int timeout = determineTimeout(definition);
 			if (timeout != TransactionDefinition.TIMEOUT_DEFAULT) {
 				txObject.getConnectionHolder().setTimeoutInSeconds(timeout);
 			}
 
-			// Bind the connection holder to the thread.
+			// 绑定数据源和连接到事务同步管理器上 把数据源作为key，数据库连接作为value，设置到线程变量中去
 			if (txObject.isNewConnectionHolder()) {
 				TransactionSynchronizationManager.bindResource(obtainDataSource(), txObject.getConnectionHolder());
 			}
@@ -299,6 +315,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 
 		catch (Throwable ex) {
 			if (txObject.isNewConnectionHolder()) {
+				//释放数据库连接
 				DataSourceUtils.releaseConnection(con, obtainDataSource());
 				txObject.setConnectionHolder(null, false);
 			}
@@ -320,12 +337,15 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 
 	@Override
 	protected void doCommit(DefaultTransactionStatus status) {
+		//获得数据源事务对象转为DataSourceTransactionObject
 		DataSourceTransactionObject txObject = (DataSourceTransactionObject) status.getTransaction();
+		//获取连接用于提交事务
 		Connection con = txObject.getConnectionHolder().getConnection();
 		if (status.isDebug()) {
 			logger.debug("Committing JDBC transaction on Connection [" + con + "]");
 		}
 		try {
+			//提交事务
 			con.commit();
 		}
 		catch (SQLException ex) {
@@ -335,12 +355,15 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 
 	@Override
 	protected void doRollback(DefaultTransactionStatus status) {
+		//获得数据源事务对象转为DataSourceTransactionObject
 		DataSourceTransactionObject txObject = (DataSourceTransactionObject) status.getTransaction();
+		//获取连接用于回滚事务
 		Connection con = txObject.getConnectionHolder().getConnection();
 		if (status.isDebug()) {
 			logger.debug("Rolling back JDBC transaction on Connection [" + con + "]");
 		}
 		try {
+			//回滚事务
 			con.rollback();
 		}
 		catch (SQLException ex) {

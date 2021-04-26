@@ -45,7 +45,9 @@ public class PayServiceImpl implements PayService {
     }
 
     @Override
-	@Transactional(propagation = Propagation.NESTED)
+//	@Transactional(propagation = Propagation.NESTED)
+	@Transactional(propagation = Propagation.REQUIRED)
+//	@Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateProductStore(Integer productId) {
         try{
             productInfoDao.updateProductInfo(productId);

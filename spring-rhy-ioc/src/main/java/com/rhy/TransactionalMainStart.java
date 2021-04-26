@@ -15,6 +15,5 @@ public class TransactionalMainStart {
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Config.class);
 		PayService payService = (PayService) applicationContext.getBean("payServiceImpl");
 		payService.pay("1",10);
-
 	}
 }
