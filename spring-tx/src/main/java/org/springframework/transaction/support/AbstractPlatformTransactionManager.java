@@ -431,22 +431,36 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	private TransactionStatus handleExistingTransaction(
 			TransactionDefinition definition, Object transaction, boolean debugEnabled)
 			throws TransactionException {
-
+		/**
+		 * 若事务模式为{@link TransactionDefinition#PROPAGATION_NEVER}支持当前事务，不存在则开启新事物。
+		 * 表示从不运行在事务中，如果存在嵌套事务则抛出异常。由于isExistingTransaction(transaction)已经判断存在嵌套事务了，所以进入这里肯定存在事务
+		 */
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NEVER) {
 			throw new IllegalTransactionStateException(
 					"Existing transaction found for transaction marked with propagation 'never'");
 		}
-
+		/**
+		 * 若事务模式为{@link TransactionDefinition#PROPAGATION_NOT_SUPPORTED}挂起当前事务，不开启事务
+		 * 1.suspend中挂起当前事务，将线程变量中的事务信息取出并置为null，然后返回原事务信息suspended
+		 * 2.创建一个新的非事务状态，并将事务信息绑定到线程变量中（其中保存了挂起的事务信息），newTransaction很关键，在提交事务的时候会通过这个标志判断是否提交
+		 */
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NOT_SUPPORTED) {
 			if (debugEnabled) {
 				logger.debug("Suspending current transaction");
 			}
+			//挂起当前事务
 			Object suspendedResources = suspend(transaction);
 			boolean newSynchronization = (getTransactionSynchronization() == SYNCHRONIZATION_ALWAYS);
+			//创建一个新的非事务状态，并将事务信息绑定到线程变量中（其中包含了挂起的事务信息）
 			return prepareTransactionStatus(
 					definition, null, false, newSynchronization, debugEnabled, suspendedResources);
 		}
 
+		/**
+		 * 若事务模式为{@link TransactionDefinition#PROPAGATION_REQUIRES_NEW}挂起当前事务，开启新事务
+		 * 1.suspend中挂起当前事务，将线程变量中的事务信息取出并置为null，然后返回原事务信息suspended
+		 * 2.开启一个新事务
+		 */
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW) {
 			if (debugEnabled) {
 				logger.debug("Suspending current transaction, creating new transaction with name [" +
@@ -462,6 +476,10 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 			}
 		}
 
+		/**
+		 * 若事务模式为{@link TransactionDefinition#PROPAGATION_REQUIRES_NEW}支持当前事务，开启新事务
+		 * 与PROPAGATION_REQUIRED区别：PROPAGATION_NESTED开始一个嵌套事务，它是一个子事务，子事务开始执行时会开启savepoint，子事务回滚时会回滚到savepoint。只有外部事务提交时它才会提交
+		 */
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
 			if (!isNestedTransactionAllowed()) {
 				throw new NestedTransactionNotSupportedException(
@@ -471,19 +489,19 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 			if (debugEnabled) {
 				logger.debug("Creating nested transaction with name [" + definition.getName() + "]");
 			}
+			//是否支持savepoint：非JTA走这个分支，{@link AbstractPlatformTransactionManager}默认是true，DataSourceTransactionManager没有复写，JtaTransactionManager重写了方法返回false
 			if (useSavepointForNestedTransaction()) {
-				// Create savepoint within existing Spring-managed transaction,
-				// through the SavepointManager API implemented by TransactionStatus.
-				// Usually uses JDBC 3.0 savepoints. Never activates Spring synchronization.
+				// 开启一个新事务
 				DefaultTransactionStatus status =
 						prepareTransactionStatus(definition, transaction, false, false, debugEnabled, null);
+				// 为事务设置一个savepoint
+				// savepoint 可以在一个事务中，设置一个回滚点，点以上不受影响，点以下回滚（外层影响内层，内层不会影响外层）
 				status.createAndHoldSavepoint();
 				return status;
 			}
 			else {
-				// Nested transaction through nested begin and commit/rollback calls.
-				// Usually only for JTA: Spring synchronization might get activated here
-				// in case of a pre-existing JTA transaction.
+				// JTA事务走这个分支，创建新事务
+				// 通过嵌套的begin和commit / rollback调用进行嵌套的事务。通常仅对于JTA：如果存在预先存在的JTA事务，则可能在此处激活Spring同步。
 				return startTransaction(definition, transaction, debugEnabled, null);
 			}
 		}
