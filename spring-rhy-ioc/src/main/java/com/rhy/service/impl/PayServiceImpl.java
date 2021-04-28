@@ -25,8 +25,8 @@ public class PayServiceImpl implements PayService {
     private ProductInfoDao productInfoDao;
 
 	@Override
-//	@Transactional(rollbackFor = Exception.class)
-	@Transactional(propagation = Propagation.NEVER)
+	@Transactional(rollbackFor = Exception.class)
+//	@Transactional(propagation = Propagation.NEVER)
     public void pay(String accountId, double money) {
         //查询余额
         double blance = accountInfoDao.qryBlanceByUserId(accountId);
@@ -42,18 +42,21 @@ public class PayServiceImpl implements PayService {
 
         //库存-1
         //updateProductStore(1);
-        ((PayService)AopContext.currentProxy()).updateProductStore(1);
+//        ((PayService)AopContext.currentProxy()).updateProductStore(1);
 
 //        System.out.println(1/0);
-
+		throw new RuntimeException("余额不足");
     }
 
     @Override
 //	@Transactional(propagation = Propagation.NESTED)
 //	@Transactional(propagation = Propagation.REQUIRED)
 //	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Transactional(propagation = Propagation.NESTED)
+//	@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void updateProductStore(Integer productId) {
-        try{
+//		((DataSourceTransactionManager.DataSourceTransactionObject)((DefaultTransactionStatus)TransactionAspectSupport.currentTransactionStatus()).getTransaction()).getConnectionHolder().getConnection().commit();
+		try{
             productInfoDao.updateProductInfo(productId);
         }
         catch (Exception e) {

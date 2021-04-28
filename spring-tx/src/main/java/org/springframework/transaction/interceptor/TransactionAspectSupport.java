@@ -25,6 +25,7 @@ import kotlin.reflect.KFunction;
 import kotlin.reflect.jvm.ReflectJvmMapping;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -645,8 +646,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	}
 
 	/**
-	 * Handle a throwable, completing the transaction.
-	 * We may commit or roll back, depending on the configuration.
+	 * 处理一个异常，完成事务。
+	 * 我们可能会提交或回滚，具体取决于配置。
 	 * @param txInfo information about the current transaction
 	 * @param ex throwable encountered
 	 */
@@ -656,7 +657,12 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
 						"] after exception: " + ex);
 			}
-			//判断当前异常与事务属性的rollbackFor配置的是否一致
+			/**
+			 * 判断当前异常是否回滚
+			 * {@link Transactional#rollbackFor()}
+			 * {@link Transactional#rollbackForClassName()}
+			 * 属性控制
+			 */
 			if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
 				try {
 					//回滚事务
