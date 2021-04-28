@@ -330,8 +330,8 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	//---------------------------------------------------------------------
 
 	/**
-	 * This implementation handles propagation behavior. Delegates to
-	 * {@code doGetTransaction}, {@code isExistingTransaction}
+	 * 此实现处理传播行为.
+	 * 具体在{@code doGetTransaction}, {@code isExistingTransaction}
 	 * and {@code doBegin}.
 	 * @see #doGetTransaction
 	 * @see #isExistingTransaction
@@ -343,7 +343,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 
 		// 如果没有提供事务Definition则使用默认的
 		TransactionDefinition def = (definition != null ? definition : TransactionDefinition.withDefaults());
-		//尝试获取一个事务
+		//尝试获取一个事务（顶层事务），如果顶层事务存在则connectionHolder不为null
 		Object transaction = doGetTransaction();
 		boolean debugEnabled = logger.isDebugEnabled();
 		/**
@@ -371,7 +371,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		}
 		/**
 		 * 模式{@link TransactionDefinition.PROPAGATION_REQUIRED}支持当前事务，不存在则开启新事务
-		 * 模式{@link TransactionDefinition.PROPAGATION_REQUIRES_NEW}支持当前事务，不存在则开启新事物
+		 * 模式{@link TransactionDefinition.PROPAGATION_REQUIRES_NEW}挂起外部事务，创建新的事务，不存在则开启新事务
 		 * 模式{@link TransactionDefinition.PROPAGATION_NESTED}支持当前事务，不存在则开启新事物。
 		 * 与PROPAGATION_REQUIRED区别：PROPAGATION_NESTED开始一个嵌套事务，它是一个子事务，子事务开始执行时会开启savepoint，子事务回滚时会回滚到savepoint。只有外部事务提交时它才会提交
 		 */
@@ -410,6 +410,9 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 
 	/**
 	 * 开始一个新事务
+	 * 1.创建一个事务状态，标记newTransaction为true
+	 * 2.{@link #doBegin(Object, TransactionDefinition)}开启事务
+	 * 3.把当前的事务信息绑定到线程变量中
 	 */
 	private TransactionStatus startTransaction(TransactionDefinition definition, Object transaction,
 			boolean debugEnabled, @Nullable SuspendedResourcesHolder suspendedResources) {
@@ -564,7 +567,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	}
 
 	/**
-	 * Initialize transaction synchronization as appropriate.
+	 * 适当地初始化事务同步。
 	 */
 	protected void prepareSynchronization(DefaultTransactionStatus status, TransactionDefinition definition) {
 		if (status.isNewSynchronization()) {
