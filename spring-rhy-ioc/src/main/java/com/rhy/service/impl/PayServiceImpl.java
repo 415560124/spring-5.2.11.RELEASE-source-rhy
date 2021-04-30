@@ -45,7 +45,7 @@ public class PayServiceImpl implements PayService {
 //        ((PayService)AopContext.currentProxy()).updateProductStore(1);
 
 //        System.out.println(1/0);
-		throw new RuntimeException("余额不足");
+//		throw new RuntimeException("余额不足");
     }
 
     @Override
