@@ -45,7 +45,7 @@ public class PayServiceImpl implements PayService {
 //        ((PayService)AopContext.currentProxy()).updateProductStore(1);
 
 //        System.out.println(1/0);
-		throw new RuntimeException("余额不足");
+//		throw new RuntimeException("余额不足");
     }
 
     @Override
@@ -56,8 +56,10 @@ public class PayServiceImpl implements PayService {
 //	@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void updateProductStore(Integer productId) {
 //		((DataSourceTransactionManager.DataSourceTransactionObject)((DefaultTransactionStatus)TransactionAspectSupport.currentTransactionStatus()).getTransaction()).getConnectionHolder().getConnection().commit();
+
 		try{
             productInfoDao.updateProductInfo(productId);
+//			throw new RuntimeException("余额不足");
         }
         catch (Exception e) {
             throw new RuntimeException("内部异常");
