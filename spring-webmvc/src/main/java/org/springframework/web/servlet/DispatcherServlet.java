@@ -162,13 +162,13 @@ import org.springframework.web.util.WebUtils;
 @SuppressWarnings("serial")
 public class DispatcherServlet extends FrameworkServlet {
 
-	/** Well-known name for the MultipartResolver object in the bean factory for this namespace. */
+	/** 文件上传下载BeanName */
 	public static final String MULTIPART_RESOLVER_BEAN_NAME = "multipartResolver";
 
-	/** Well-known name for the LocaleResolver object in the bean factory for this namespace. */
+	/** 国际化支持BeanName */
 	public static final String LOCALE_RESOLVER_BEAN_NAME = "localeResolver";
 
-	/** Well-known name for the ThemeResolver object in the bean factory for this namespace. */
+	/** 主题BeanName */
 	public static final String THEME_RESOLVER_BEAN_NAME = "themeResolver";
 
 	/**
@@ -293,16 +293,16 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 	}
 
-	/** Detect all HandlerMappings or just expect "handlerMapping" bean?. */
+	/** 是否允许探测所有的HandlerMappings，默认是true */
 	private boolean detectAllHandlerMappings = true;
 
-	/** Detect all HandlerAdapters or just expect "handlerAdapter" bean?. */
+	/** 是否允许探测所有的适配器，默认是true */
 	private boolean detectAllHandlerAdapters = true;
 
-	/** Detect all HandlerExceptionResolvers or just expect "handlerExceptionResolver" bean?. */
+	/** 是否允许探测所有的异常解析器 */
 	private boolean detectAllHandlerExceptionResolvers = true;
 
-	/** Detect all ViewResolvers or just expect "viewResolver" bean?. */
+	/** 是否允许探测所有的视图解析器 */
 	private boolean detectAllViewResolvers = true;
 
 	/** Throw a NoHandlerFoundException if no Handler was found to process this request? *.*/
@@ -311,7 +311,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	/** Perform cleanup of request attributes after include request?. */
 	private boolean cleanupAfterInclude = true;
 
-	/** MultipartResolver used by this servlet. */
+	/** 文件上传下载组件，常用的子类是{@link org.springframework.web.multipart.commons.CommonsMultipartResolver} */
 	@Nullable
 	private MultipartResolver multipartResolver;
 
@@ -488,7 +488,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 
 	/**
-	 * This implementation calls {@link #initStrategies}.
+	 * 初始化springmvc九大组件
 	 */
 	@Override
 	protected void onRefresh(ApplicationContext context) {

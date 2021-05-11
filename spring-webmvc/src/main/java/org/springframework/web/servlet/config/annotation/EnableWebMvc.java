@@ -87,7 +87,7 @@ import org.springframework.context.annotation.Import;
  *	   }
  * }
  * </pre>
- *
+ * 主要导入了{@link DelegatingWebMvcConfiguration},这个类为springmvc的配置类，继承了{@link WebMvcConfigurationSupport}
  * @author Dave Syer
  * @author Rossen Stoyanchev
  * @since 3.1

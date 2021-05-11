@@ -45,6 +45,10 @@ public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
 	private final WebMvcConfigurerComposite configurers = new WebMvcConfigurerComposite();
 
 
+	/**
+	 * 获得我们容器中实现了{@link WebMvcConfigurer}的WebMvc配置类类
+	 * @param configurers
+	 */
 	@Autowired(required = false)
 	public void setConfigurers(List<WebMvcConfigurer> configurers) {
 		if (!CollectionUtils.isEmpty(configurers)) {
