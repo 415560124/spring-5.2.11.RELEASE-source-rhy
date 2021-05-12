@@ -894,7 +894,9 @@ public abstract class ClassUtils {
 	 * @return the user-defined class
 	 */
 	public static Class<?> getUserClass(Class<?> clazz) {
+		//判断BeanName是不是CGLIB标签开头的
 		if (clazz.getName().contains(CGLIB_CLASS_SEPARATOR)) {
+			//如果是则获取其父类，因为CGLIB的实现是通过继承
 			Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null && superclass != Object.class) {
 				return superclass;

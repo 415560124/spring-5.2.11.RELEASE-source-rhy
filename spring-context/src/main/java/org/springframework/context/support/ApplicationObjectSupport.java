@@ -75,6 +75,7 @@ public abstract class ApplicationObjectSupport implements ApplicationContextAwar
 			}
 			this.applicationContext = context;
 			this.messageSourceAccessor = new MessageSourceAccessor(context);
+			//留给子类扩展实现
 			initApplicationContext(context);
 		}
 		else {

@@ -1,5 +1,6 @@
 package com.rhy.controller;
 
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -13,7 +14,9 @@ import javax.servlet.http.HttpServletResponse;
  * @slogan: 如果你想攀登高峰，切莫把彩虹当梯子
  * @description:
  */
-@Controller
+//@Controller
+@Component
+@RequestMapping("/controller")
 public class AnnotationController {
 	@RequestMapping("/annotation")
 	@ResponseBody

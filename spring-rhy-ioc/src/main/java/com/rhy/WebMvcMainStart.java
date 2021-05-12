@@ -3,11 +3,17 @@ package com.rhy;
 import com.rhy.config.Config;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
+import org.apache.catalina.Wrapper;
+import org.apache.catalina.core.ApplicationContext;
+import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.startup.Tomcat;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.HandlerMapping;
 
+import javax.servlet.ServletContext;
 import java.io.File;
 
 /**
@@ -18,16 +24,8 @@ import java.io.File;
  */
 public class WebMvcMainStart {
 	public static void main(String[] args) throws LifecycleException {
-		//初始化Tomcat
-		Tomcat tomcat = new Tomcat();
-		tomcat.setPort(9999);
-		tomcat.addContext("/",System.getProperty("user.dir")+ File.separator+"spring-rhy-ioc"+File.separator+"src"+File.separator+"main"+File.separator+"webapp");
-		//初始化spring
-		tomcat.start();
-		tomcat.getServer().await();
-
-		AnnotationConfigWebApplicationContext annotationConfigWebApplicationContext = new AnnotationConfigWebApplicationContext();
-//		annotationConfigWebApplicationContext.setServletContext();
 		//		System.out.println(System.getProperty("user.dir")+ File.separator+"spring-rhy-ioc"+File.separator+"src"+File.separator+"main"+File.separator+"webapp");
+		AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext(Config.class);
+		String[] strings = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(annotationConfigApplicationContext, HandlerMapping.class);
 	}
 }
