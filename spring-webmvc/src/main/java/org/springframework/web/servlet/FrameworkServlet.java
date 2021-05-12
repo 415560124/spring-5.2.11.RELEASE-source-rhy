@@ -520,14 +520,18 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 */
 	@Override
 	protected final void initServletBean() throws ServletException {
+		//输出初始化的上下文类信息
 		getServletContext().log("Initializing Spring " + getClass().getSimpleName() + " '" + getServletName() + "'");
 		if (logger.isInfoEnabled()) {
 			logger.info("Initializing Servlet '" + getServletName() + "'");
 		}
+		//记录开始时间
 		long startTime = System.currentTimeMillis();
 
 		try {
+			//初始化web容器
 			this.webApplicationContext = initWebApplicationContext();
+			//留给子类实现，现在是空是实现
 			initFrameworkServlet();
 		}
 		catch (ServletException | RuntimeException ex) {
@@ -558,10 +562,11 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
+		//获取父容器
 		WebApplicationContext rootContext =
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
-
+		//如果子容器不为空
 		if (this.webApplicationContext != null) {
 			// A context instance was injected at construction time -> use it
 			wac = this.webApplicationContext;
@@ -571,8 +576,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 					// The context has not yet been refreshed -> provide services such as
 					// setting the parent context, setting the application context id, etc
 					if (cwac.getParent() == null) {
-						// The context instance was injected without an explicit parent -> set
-						// the root application context (if any; may be null) as the parent
+						// 设置父子容器关系
 						cwac.setParent(rootContext);
 					}
 					configureAndRefreshWebApplicationContext(cwac);
@@ -675,6 +679,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			// The application context id is still set to its original default value
 			// -> assign a more useful id based on available information
 			if (this.contextId != null) {
+				//设置容器ID
 				wac.setId(this.contextId);
 			}
 			else {
@@ -683,20 +688,21 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 						ObjectUtils.getDisplayString(getServletContext().getContextPath()) + '/' + getServletName());
 			}
 		}
-
+		//把servlet上下文放到容器中
 		wac.setServletContext(getServletContext());
+		//把servlet配置放到容器中
 		wac.setServletConfig(getServletConfig());
+		//设置命名空间
 		wac.setNamespace(getNamespace());
+		//设置监听器
 		wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
 
-		// The wac environment's #initPropertySources will be called in any case when the context
-		// is refreshed; do it eagerly here to ensure servlet property sources are in place for
-		// use in any post-processing or initialization that occurs below prior to #refresh
+		// 初始化Web配置
 		ConfigurableEnvironment env = wac.getEnvironment();
 		if (env instanceof ConfigurableWebEnvironment) {
 			((ConfigurableWebEnvironment) env).initPropertySources(getServletContext(), getServletConfig());
 		}
-
+		//执行WebApplicationContext的后置处理器
 		postProcessWebApplicationContext(wac);
 		applyInitializers(wac);
 		wac.refresh();
@@ -874,12 +880,14 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		//解析请求方法
 		HttpMethod httpMethod = HttpMethod.resolve(request.getMethod());
 		if (httpMethod == HttpMethod.PATCH || httpMethod == null) {
+			//如果是PATCH或者为空直接调用处理请求通用方法
 			processRequest(request, response);
 		}
 		else {
+			//在这里会判断是doGet还是doPost调用对应的请求处理方法
 			super.service(request, response);
 		}
 	}
@@ -999,7 +1007,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 		asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(), new RequestBindingInterceptor());
-
+		/**
+		 * 将LocaleContext、RequestAttributes绑定到线程变量中去
+		 * 通过
+		 * {@link LocaleContextHolder#getLocaleContext()}
+		 * {@link RequestContextHolder#getRequestAttributes()}
+		 * 获取
+		 */
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
@@ -1020,6 +1034,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 				requestAttributes.requestCompleted();
 			}
 			logResult(request, response, failureCause, asyncManager);
+			//发布请求处理完成事件
 			publishRequestHandledEvent(request, response, startTime, failureCause);
 		}
 	}

@@ -496,17 +496,23 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
-	 * Initialize the strategy objects that this servlet uses.
-	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
+	 * 用于初始化springmvc的九大组件
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		//初始化 文件上传下载解析器对象
 		initMultipartResolver(context);
+		//初始化 处理国际化资源对象
 		initLocaleResolver(context);
+		//初始化 主题解析对象
 		initThemeResolver(context);
+		//初始化 映射器HandlerMapping
 		initHandlerMappings(context);
+		//初始化 适配器HandlerAdapters
 		initHandlerAdapters(context);
+		//初始化 处理器异常解析器对象
 		initHandlerExceptionResolvers(context);
 		initRequestToViewNameTranslator(context);
+		//初始化 视图解析器对象
 		initViewResolvers(context);
 		initFlashMapManager(context);
 	}
@@ -924,10 +930,13 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 		}
 
-		// Make framework objects available to handlers and view objects.
+		//把Spring Web上下文对象存放到Request的Attribute中
 		request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
+		//把Spring国际化支持解析器对象存放到Request的attribute中
 		request.setAttribute(LOCALE_RESOLVER_ATTRIBUTE, this.localeResolver);
+		//存放主题解析器
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
+		//存放主题源对象
 		request.setAttribute(THEME_SOURCE_ATTRIBUTE, getThemeSource());
 
 		if (this.flashMapManager != null) {
@@ -940,6 +949,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			//真正处理请求
 			doDispatch(request, response);
 		}
 		finally {
