@@ -277,7 +277,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	}
 
 	/**
-	 * Look for handler methods in the specified handler bean.
+	 * 在指定的处理程序bean中查找处理程序方法@RequestMapping
 	 * @param handler either a bean name or an actual handler instance
 	 * @see #getMappingForMethod
 	 */
@@ -292,7 +292,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			Class<?> userType = ClassUtils.getUserClass(handlerType);
 			/**
 			 * 方法拦截器工具类
-			 * 作用：把@RequestMapping的方法对象作为Key，配置的路径作为Value
+			 * 作用：把@RequestMapping的方法对象作为Key，{@link RequestMappingInfo}作为Value
 			 * 设置到Map对象中
 			 * 真正执行解析的是{@link #getMappingForMethod}方法
 			 */
@@ -649,8 +649,8 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				 */
 				validateMethodMapping(handlerMethod, mapping);
 				/**
-				 * 把url和HandlerMethod保存到mappingLookup的map中
-				 * 在{@link org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping}中key为{@link RequestMappingInfo}
+				 * 把{@link RequestMappingInfo}和HandlerMethod保存到mappingLookup的map中
+				 * 在{@link RequestMappingHandlerMapping}中key为{@link RequestMappingInfo}
 				 */
 				this.mappingLookup.put(mapping, handlerMethod);
 				/**
