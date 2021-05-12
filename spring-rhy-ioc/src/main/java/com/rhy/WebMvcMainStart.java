@@ -25,6 +25,9 @@ public class WebMvcMainStart {
 		//初始化spring
 		tomcat.start();
 		tomcat.getServer().await();
+
+		AnnotationConfigWebApplicationContext annotationConfigWebApplicationContext = new AnnotationConfigWebApplicationContext();
+//		annotationConfigWebApplicationContext.setServletContext();
 		//		System.out.println(System.getProperty("user.dir")+ File.separator+"spring-rhy-ioc"+File.separator+"src"+File.separator+"main"+File.separator+"webapp");
 	}
 }
