@@ -64,6 +64,10 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.util.NestedServletException;
 import org.springframework.web.util.WebUtils;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
+import org.springframework.web.servlet.handler.AbstractHandlerMapping;
 
 /**
  * Central dispatcher for HTTP request handlers/controllers, e.g. for web UI controllers
@@ -1009,7 +1013,15 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HttpServletRequest processedRequest = request;
+		/**
+		 * 处理器链，里面包含了
+		 * interceptor：拦截器集合（默认的和我们自己配置的）
+		 * handler：
+		 */
 		HandlerExecutionChain mappedHandler = null;
+		/**
+		 * 是否为文件上传请求
+		 */
 		boolean multipartRequestParsed = false;
 
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
@@ -1019,17 +1031,29 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				/**
+				 * 检查request对象 判断我们的请求是否为文件上传请求
+				 */
 				processedRequest = checkMultipart(request);
+				/**
+				 * 判断是不是我们文件上传的请求，若是的话 processedRequest != request
+				 * 因为processedRequest会包装为MultipartHttpServletRequest
+				 */
 				multipartRequestParsed = (processedRequest != request);
 
-				// Determine handler for the current request.
+				/**
+				 * 从根据Request从{@link HandlerMapping}中获取{@link HandlerExecutionChain}对象
+				 * 里面封装了{@link HandlerInterceptor}和{@link org.springframework.web.method.HandlerMethod}
+				 */
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
-				// Determine handler adapter for the current request.
+				/**
+				 * 根据{@link org.springframework.web.method.HandlerMethod}选择可执行的{@link HandlerAdapter}适配器对象
+				 */
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
@@ -1239,14 +1263,36 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Nullable
 	protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		/**
+		 * 判断handlerMappings是否为空
+		 * 在{@link #initHandlerMappings(ApplicationContext)}中会初始化handlerMappings对象
+		 */
 		if (this.handlerMappings != null) {
+			/**
+			 * 遍历所有的{@link HandlerMapping}
+			 * 在@{@link EnableWebMvc}中会注册HandlerMapping的默认实现类
+			 * {@link RequestMappingHandlerMapping}解析@RequestMapping @Controller注解的
+			 * {@link SimpleUrlHandlerMapping} beanName为“/”开头的：
+			 * ①实现了{@link org.springframework.web.servlet.mvc.Controller}接口的
+			 * ②实现了{@link org.springframework.web.HttpRequestHandler}接口的
+			 * ③实现了{@link javax.servlet.http.HttpServlet}接口的
+			 */
 			for (HandlerMapping mapping : this.handlerMappings) {
+				/**
+				 * 循环调用{@link HandlerMapping#getHandler(HttpServletRequest)}方法
+				 * 在{@link RequestMappingHandlerMapping}中，会调用父类的{@link AbstractHandlerMapping#getHandler(HttpServletRequest)}方法
+				 * ①获取请求的url和{@link MappingRegistry#urlLookup}比对，再通过{@link MappingRegistry#mappingLookup}获得{@link org.springframework.web.method.HandlerMethod}对象
+				 * ②获得请求的执行链，里面包装了{@link HandlerInterceptor}和{@link org.springframework.web.method.HandlerMethod}
+				 */
 				HandlerExecutionChain handler = mapping.getHandler(request);
 				if (handler != null) {
 					return handler;
 				}
 			}
 		}
+		/**
+		 * 如果还没有匹配到{@link HandlerExecutionChain}对象则匹配失败，返回null
+		 */
 		return null;
 	}
 
@@ -1270,13 +1316,20 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
-	 * Return the HandlerAdapter for this handler object.
+	 * 根据{@link org.springframework.web.method.HandlerMethod}选择对应的适配器对象
+	 * 在@{@link EnableWebMvc}中注入了
+	 * {@link org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter}执行注解实现的
+	 * {@link org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter}执行实现Controller接口的
+	 * {@link org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter}执行实现HttpRequestHandler接口的
 	 * @param handler the handler object to find an adapter for
 	 * @throws ServletException if no HandlerAdapter can be found for the handler. This is a fatal error.
 	 */
 	protected HandlerAdapter getHandlerAdapter(Object handler) throws ServletException {
+		//适配器不为空
 		if (this.handlerAdapters != null) {
+			//循环所有适配器
 			for (HandlerAdapter adapter : this.handlerAdapters) {
+				//看当前适配器是否支持当前HandlerMethod
 				if (adapter.supports(handler)) {
 					return adapter;
 				}

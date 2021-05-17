@@ -396,18 +396,35 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	// Handler method lookup
 
 	/**
-	 * Look up a handler method for the given request.
+	 * 通过request对象获取HandlerMethod对象
 	 */
 	@Override
 	protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+		/**
+		 * 获取UrlPathHelper对象，用来解析request的请求映射路径url
+		 */
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
 		request.setAttribute(LOOKUP_PATH, lookupPath);
+		/**
+		 * 获取读锁
+		 */
 		this.mappingRegistry.acquireReadLock();
 		try {
+			/**
+			 * 通过url获取{@link RequestMappingInfo},再封装为{@link Match}对象
+			 * 通过比较后，返回最佳匹配{@link Match#handlerMethod}
+			 * {@link HandlerMethod}存储在{@link MappingRegistry#mappingLookup}中，Map<{@link RequestMappingInfo},{@link HandlerMethod}>
+			 */
 			HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
+			/**
+			 * 如果{@link HandlerMethod}不为空，则判断handler是否为String类型，String类型代表handler为beanName
+			 * 调用{@link org.springframework.beans.factory.BeanFactory#getBean(String)}从容器中拿到实例Bean
+			 * 这里会创建一个新的HandlerMethod返回
+			 */
 			return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
 		}
 		finally {
+			//释放读锁
 			this.mappingRegistry.releaseReadLock();
 		}
 	}
@@ -424,20 +441,36 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	@Nullable
 	protected HandlerMethod lookupHandlerMethod(String lookupPath, HttpServletRequest request) throws Exception {
 		List<Match> matches = new ArrayList<>();
+		/**
+		 * 根据url去{@link MappingRegistry#urlLookup}中找{@link RequestMappingInfo}，
+		 * {@link MappingRegistry#urlLookup}是一个Map<url,RequestMappingInfo>
+		 */
 		List<T> directPathMatches = this.mappingRegistry.getMappingsByUrl(lookupPath);
+		/**
+		 * 匹配的{@link RequestMappingInfo}不为空，封装到{@link Match}集合中
+		 * 通过{@link MappingRegistry#mappingLookup}获取到HandlerMethod对象
+		 */
 		if (directPathMatches != null) {
 			addMatchingMappings(directPathMatches, matches, request);
 		}
+		/**
+		 * 如果一个都没找到，则把所有映射加载到matches中
+		 */
 		if (matches.isEmpty()) {
-			// No choice but to go through all mappings...
+			// 别无选择，只能遍历所有映射...
 			addMatchingMappings(this.mappingRegistry.getMappings().keySet(), matches, request);
 		}
-
+		/**
+		 * Match集合不为空
+		 */
 		if (!matches.isEmpty()) {
 			Match bestMatch = matches.get(0);
 			if (matches.size() > 1) {
+				//创建Match匹配器对象
 				Comparator<Match> comparator = new MatchComparator(getMappingComparator(request));
+				//对匹配集合进行排序
 				matches.sort(comparator);
+				//默认选择第一个为最匹配的
 				bestMatch = matches.get(0);
 				if (logger.isTraceEnabled()) {
 					logger.trace(matches.size() + " matching mappings: " + matches);
@@ -445,17 +478,29 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				if (CorsUtils.isPreFlightRequest(request)) {
 					return PREFLIGHT_AMBIGUOUS_MATCH;
 				}
+				/**
+				 * @RequestMapping(value = {"/test","/angle"})
+					public String testRhy(HttpServletRequest httpServletRequest) {}
+
+					 @RequestMapping(value = {"/test"})
+					 public String testWyy(HttpServletRequest httpServletRequest) {}
+				 */
+				//获取第二个最匹配的
 				Match secondBestMatch = matches.get(1);
+				//如果第一个和第二个是一模一样的
 				if (comparator.compare(bestMatch, secondBestMatch) == 0) {
 					Method m1 = bestMatch.handlerMethod.getMethod();
 					Method m2 = secondBestMatch.handlerMethod.getMethod();
 					String uri = request.getRequestURI();
+					//抛出异常
 					throw new IllegalStateException(
 							"Ambiguous handler methods mapped for '" + uri + "': {" + m1 + ", " + m2 + "}");
 				}
 			}
+			//把最佳匹配设置到request中
 			request.setAttribute(BEST_MATCHING_HANDLER_ATTRIBUTE, bestMatch.handlerMethod);
 			handleMatch(bestMatch.mapping, lookupPath, request);
+			//返回最匹配的
 			return bestMatch.handlerMethod;
 		}
 		else {
