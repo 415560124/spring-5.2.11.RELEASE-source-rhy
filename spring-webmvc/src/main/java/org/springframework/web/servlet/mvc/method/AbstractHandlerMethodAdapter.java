@@ -86,7 +86,9 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	@Nullable
 	public final ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-
+		/**
+		 * 留给子类实现，真正调用{@link org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter#handleInternal(HttpServletRequest, HttpServletResponse, HandlerMethod)}
+		 */
 		return handleInternal(request, response, (HandlerMethod) handler);
 	}
 

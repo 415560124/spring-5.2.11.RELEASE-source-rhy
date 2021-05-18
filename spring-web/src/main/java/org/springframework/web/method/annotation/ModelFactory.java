@@ -103,6 +103,9 @@ public final class ModelFactory {
 
 		Map<String, ?> sessionAttributes = this.sessionAttributesHandler.retrieveAttributes(request);
 		container.mergeAttributes(sessionAttributes);
+		/**
+		 * 调用@ModelAttribute方法
+		 */
 		invokeModelAttributeMethods(request, container);
 
 		for (String name : findSessionAttributeArguments(handlerMethod)) {
@@ -133,7 +136,9 @@ public final class ModelFactory {
 				}
 				continue;
 			}
-
+			/**
+			 * 调用@ModelAttribute标注的方法
+			 */
 			Object returnValue = modelMethod.invokeForRequest(request, container);
 			if (!modelMethod.isVoid()){
 				String returnValueName = getNameForReturnValue(returnValue, modelMethod.getReturnType());

@@ -1065,19 +1065,28 @@ public class DispatcherServlet extends FrameworkServlet {
 						return;
 					}
 				}
-
+				/**
+				 * 执行拦截器的{@link HandlerInterceptor#preHandle(HttpServletRequest, HttpServletResponse, Object)}方法
+				 * true：放行  false：拦截
+				 * 如果被拦截则调用{@link HandlerInterceptor#afterCompletion(HttpServletRequest, HttpServletResponse, Object, Exception)}方法
+				 */
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
-				// Actually invoke the handler.
+				/**
+				 * 通过适配器，真正调用目标方法
+				 */
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
-
+		
 				applyDefaultViewName(processedRequest, mv);
+				/**
+				 * 执行拦截器的{@link HandlerInterceptor#postHandle(HttpServletRequest, HttpServletResponse, Object, ModelAndView)}方法
+				 */
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
