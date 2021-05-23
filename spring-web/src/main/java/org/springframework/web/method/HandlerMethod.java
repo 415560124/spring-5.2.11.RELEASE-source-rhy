@@ -413,6 +413,7 @@ public class HandlerMethod {
 	protected static Object findProvidedArgument(MethodParameter parameter, @Nullable Object... providedArgs) {
 		if (!ObjectUtils.isEmpty(providedArgs)) {
 			for (Object providedArg : providedArgs) {
+				//如果传入的参数，类型是需求的参数，则返回
 				if (parameter.getParameterType().isInstance(providedArg)) {
 					return providedArg;
 				}

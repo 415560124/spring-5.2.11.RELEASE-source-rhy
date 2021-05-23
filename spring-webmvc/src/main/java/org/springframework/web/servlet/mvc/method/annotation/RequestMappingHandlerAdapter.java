@@ -922,7 +922,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;
 			}
-
+			//
 			return getModelAndView(mavContainer, modelFactory, webRequest);
 		}
 		finally {
