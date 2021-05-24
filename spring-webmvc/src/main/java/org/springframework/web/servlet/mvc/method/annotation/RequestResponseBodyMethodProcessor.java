@@ -128,6 +128,9 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
 
 		parameter = parameter.nestedIfOptional();
+		/**
+		 * 用{@link HttpMessageConverter}读取body请求体信息，解析JSON的就实现了这个类
+		 */
 		Object arg = readWithMessageConverters(webRequest, parameter, parameter.getNestedGenericParameterType());
 		String name = Conventions.getVariableNameForParameter(parameter);
 
@@ -154,9 +157,11 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 		HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 		Assert.state(servletRequest != null, "No HttpServletRequest");
 		ServletServerHttpRequest inputMessage = new ServletServerHttpRequest(servletRequest);
-
+		//用{@link HttpMessageConverter}读取body请求体信息，解析JSON的就实现了这个类
 		Object arg = readWithMessageConverters(inputMessage, parameter, paramType);
+		//如果解析出来的请求体为null，校验是否必输
 		if (arg == null && checkRequired(parameter)) {
+			//如果必输则抛出异常
 			throw new HttpMessageNotReadableException("Required request body is missing: " +
 					parameter.getExecutable().toGenericString(), inputMessage);
 		}
@@ -172,12 +177,12 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest)
 			throws IOException, HttpMediaTypeNotAcceptableException, HttpMessageNotWritableException {
-
+		//设置视图解析器为已处理
 		mavContainer.setRequestHandled(true);
 		ServletServerHttpRequest inputMessage = createInputMessage(webRequest);
 		ServletServerHttpResponse outputMessage = createOutputMessage(webRequest);
 
-		// Try even with null return value. ResponseBodyAdvice could get involved.
+		// 通过消息转换器把返回值写入
 		writeWithMessageConverters(returnValue, returnType, inputMessage, outputMessage);
 	}
 

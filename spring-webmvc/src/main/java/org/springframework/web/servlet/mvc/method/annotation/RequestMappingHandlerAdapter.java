@@ -800,10 +800,15 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		}
 		//判断请求头中是否包含Cache-Control请求头，如果不包含，则对当前response进行处理
 		if (!response.containsHeader(HEADER_CACHE_CONTROL)) {
+			// 如果当前SessionAttribute中存在配置的attributes，则为其设置过期时间。
+			// 这里SessionAttribute主要是通过@SessionAttribute注解生成的
 			if (getSessionAttributesHandler(handlerMethod).hasSessionAttributes()) {
 				applyCacheSeconds(response, this.cacheSecondsForSessionAttributeHandlers);
 			}
 			else {
+				// 如果当前不存在SessionAttributes，则判断当前是否存在Cache-Control设置，
+				// 如果存在，则按照该设置进行response处理，如果不存在，则设置response中的
+				// Cache的过期时间为-1，即立即失效
 				prepareResponse(response);
 			}
 		}
@@ -922,7 +927,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;
 			}
-			//
+			// 对封装的ModelAndViewContainer进行处理，主要判断是否进行重定向
 			return getModelAndView(mavContainer, modelFactory, webRequest);
 		}
 		finally {
@@ -1051,8 +1056,11 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	@Nullable
 	private ModelAndView getModelAndView(ModelAndViewContainer mavContainer,
 			ModelFactory modelFactory, NativeWebRequest webRequest) throws Exception {
-
+		/**
+		 * 更新数据模型
+		 */
 		modelFactory.updateModel(webRequest, mavContainer);
+		//如果请求已经处理完毕，说明不需要视图解析器
 		if (mavContainer.isRequestHandled()) {
 			return null;
 		}
