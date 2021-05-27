@@ -604,12 +604,15 @@ public class DispatcherServlet extends FrameworkServlet {
 		this.handlerMappings = null;
 
 		if (this.detectAllHandlerMappings) {
-			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
+			/**
+			 * 从Spring容器中取出实现了HandlerMapping的类
+			 * 在@EnableWebMvc中会注册默认的实现类
+			 */
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			if (!matchingBeans.isEmpty()) {
 				this.handlerMappings = new ArrayList<>(matchingBeans.values());
-				// We keep HandlerMappings in sorted order.
+				// 按照@Order注解排序
 				AnnotationAwareOrderComparator.sort(this.handlerMappings);
 			}
 		}

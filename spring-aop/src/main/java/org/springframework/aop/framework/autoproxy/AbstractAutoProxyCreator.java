@@ -17,6 +17,7 @@
 package org.springframework.aop.framework.autoproxy;
 
 import java.lang.reflect.Constructor;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

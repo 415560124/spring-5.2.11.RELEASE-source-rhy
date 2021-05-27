@@ -1,6 +1,7 @@
 package com.rhy.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.rhy.transaction.CustomDataSourceTransactionManager;
 import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -55,9 +56,19 @@ public class TransactionConfig {
 	 * @param dataSource
 	 * @return
 	 */
+//	@Bean
+//	public PlatformTransactionManager transactionManager(DataSource dataSource) {
+//		return new DataSourceTransactionManager(dataSource);
+//	}
+
+	/**
+	 * 手动回滚自定义事务控制器
+	 * @param dataSource
+	 * @return
+	 */
 	@Bean
 	public PlatformTransactionManager transactionManager(DataSource dataSource) {
-		return new DataSourceTransactionManager(dataSource);
+		return new CustomDataSourceTransactionManager(dataSource);
 	}
 
 	/**
