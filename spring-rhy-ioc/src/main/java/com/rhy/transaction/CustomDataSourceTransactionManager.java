@@ -15,11 +15,16 @@ public class CustomDataSourceTransactionManager extends DataSourceTransactionMan
     public CustomDataSourceTransactionManager(DataSource dataSource) {
         super(dataSource);
     }
+
+    /**
+     * 手动提交
+     * @param status
+     */
     public void manualCommit(DefaultTransactionStatus status){
-        doCommit(status);
+        super.doCommit(status);
     }
-    @Override
-    protected void doCommit(DefaultTransactionStatus status) {
+    public void manualCommitForBatch(DefaultTransactionStatus status){
+        triggerBeforeCommit(status);
         super.doCommit(status);
     }
 }

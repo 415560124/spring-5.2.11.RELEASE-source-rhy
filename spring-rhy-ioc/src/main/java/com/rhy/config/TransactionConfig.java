@@ -56,20 +56,20 @@ public class TransactionConfig {
 	 * @param dataSource
 	 * @return
 	 */
-//	@Bean
-//	public PlatformTransactionManager transactionManager(DataSource dataSource) {
-//		return new DataSourceTransactionManager(dataSource);
-//	}
-
-	/**
-	 * 手动回滚自定义事务控制器
-	 * @param dataSource
-	 * @return
-	 */
 	@Bean
 	public PlatformTransactionManager transactionManager(DataSource dataSource) {
-		return new CustomDataSourceTransactionManager(dataSource);
+		return new DataSourceTransactionManager(dataSource);
 	}
+
+//	/**
+//	 * 手动回滚自定义事务控制器
+//	 * @param dataSource
+//	 * @return
+//	 */
+//	@Bean
+//	public PlatformTransactionManager transactionManager(DataSource dataSource) {
+//		return new CustomDataSourceTransactionManager(dataSource);
+//	}
 
 	/**
 	 * 按名称匹配的TransactionAttributeSource
