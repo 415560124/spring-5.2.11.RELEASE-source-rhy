@@ -4,6 +4,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 
 import javax.sql.DataSource;
+import java.io.Serializable;
 
 /**
  * @author: Herion Lemon
@@ -11,7 +12,9 @@ import javax.sql.DataSource;
  * @slogan: 如果你想攀登高峰，切莫把彩虹当梯子
  * @description:
  */
-public class CustomDataSourceTransactionManager extends DataSourceTransactionManager {
+public class CustomDataSourceTransactionManager extends DataSourceTransactionManager implements Serializable {
+	private static final long serialVersionUID=1L;
+
     public CustomDataSourceTransactionManager(DataSource dataSource) {
         super(dataSource);
     }

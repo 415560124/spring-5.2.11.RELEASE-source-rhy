@@ -3,17 +3,11 @@ package com.rhy.service.impl;
 import com.rhy.dao.AccountInfoDao;
 import com.rhy.dao.ProductInfoDao;
 import com.rhy.service.PayService;
-import com.rhy.transaction.CustomDataSourceTransactionManager;
-import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import org.springframework.transaction.support.DefaultTransactionStatus;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 
 @Component
@@ -25,8 +19,8 @@ public class PayServiceImpl implements PayService {
 
     @Autowired
     private ProductInfoDao productInfoDao;
-	@Resource
-	CustomDataSourceTransactionManager transactionManager;
+//	@Resource
+//	CustomDataSourceTransactionManager transactionManager;
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 //	@Transactional(propagation = Propagation.NEVER)
@@ -37,11 +31,10 @@ public class PayServiceImpl implements PayService {
         if(new BigDecimal(blance).compareTo(new BigDecimal(money))<0) {
             throw new RuntimeException("余额不足");
         }
-		transactionManager.manualCommit((DefaultTransactionStatus) TransactionAspectSupport.currentTransactionStatus());
 
         //更新余额
          int retVal = accountInfoDao.updateAccountBlance(accountId,money);
-
+		payService2.updateProductStore(1);
         //库存-1
         //updateProductStore(1);
 //        ((PayService)AopContext.currentProxy()).updateProductStore(1);
@@ -57,7 +50,7 @@ public class PayServiceImpl implements PayService {
 	@Transactional(propagation = Propagation.NESTED)
 //	@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void updateProductStore(Integer productId) {
-		transactionManager.manualCommit((DefaultTransactionStatus) TransactionAspectSupport.currentTransactionStatus());
+//		transactionManager.manualCommit((DefaultTransactionStatus) TransactionAspectSupport.currentTransactionStatus());
 
 		try{
             productInfoDao.updateProductInfo(productId);
