@@ -19,6 +19,8 @@ public class PayServiceImpl implements PayService {
 
     @Autowired
     private ProductInfoDao productInfoDao;
+	@Autowired
+	private PayService payService2;
 //	@Resource
 //	CustomDataSourceTransactionManager transactionManager;
 	@Override
