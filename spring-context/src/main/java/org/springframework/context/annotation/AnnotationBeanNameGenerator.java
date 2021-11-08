@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -78,6 +79,9 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	@Override
 	public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
 		if (definition instanceof AnnotatedBeanDefinition) {
+			/**
+			 * 先从注解中找是否配置了BeanName，通过{@link Component#value()}
+			 */
 			String beanName = determineBeanNameFromAnnotation((AnnotatedBeanDefinition) definition);
 			if (StringUtils.hasText(beanName)) {
 				// Explicit bean name found.
@@ -85,6 +89,9 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 			}
 		}
 		// Fallback: generate a unique default bean name.
+		/**
+		 * 否则生成一个默认BeanName
+		 */
 		return buildDefaultBeanName(definition, registry);
 	}
 
@@ -167,6 +174,12 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 		String beanClassName = definition.getBeanClassName();
 		Assert.state(beanClassName != null, "No bean class name set");
 		String shortClassName = ClassUtils.getShortName(beanClassName);
+		/**
+		 * 在这里创建了默认BeanName
+		 * 1. 拆分char[]数组
+		 * 2. 把首字母char[0]切换小写
+		 * 3. 创建新的字符串返回
+		 */
 		return Introspector.decapitalize(shortClassName);
 	}
 

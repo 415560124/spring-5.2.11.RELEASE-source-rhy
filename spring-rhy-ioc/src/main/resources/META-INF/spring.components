@@ -1,0 +1,2 @@
+# spring启动索引文件，优化启动速度
+#com.rhy.service.impl.UserServiceImpl=org.springframework.stereotype.Component

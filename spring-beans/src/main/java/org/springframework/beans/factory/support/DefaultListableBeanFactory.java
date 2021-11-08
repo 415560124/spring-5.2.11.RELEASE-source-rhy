@@ -901,6 +901,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			 * 合并我们的bean定义，
 			 * 转换为统一的{@link RootBeanDefinition},
 			 * 方便后续处理
+			 * - xml存在"parent"属性可以继承其他<bean />标签的属性，父子继承关系，在这里会做合并
 			 */
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			/**
@@ -923,6 +924,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 									getAccessControlContext());
 						}
 						else {
+							/**
+							 * 判断是否实现了{@link SmartFactoryBean}，并且会调用{@link SmartFactoryBean#isEagerInit()}返回是否预先初始化
+							 */
 							isEagerInit = (factory instanceof SmartFactoryBean &&
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
@@ -966,6 +970,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	// Implementation of BeanDefinitionRegistry interface
 	//---------------------------------------------------------------------
 
+	/**
+	 * 将{@link BeanDefinition}注册到{@link #beanDefinitionMap}和{@link #beanDefinitionNames}中
+	 * @param beanName the name of the bean instance to register
+	 * @param beanDefinition definition of the bean instance to register
+	 * @throws BeanDefinitionStoreException
+	 */
 	@Override
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
 			throws BeanDefinitionStoreException {
@@ -1010,6 +1020,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							"] with [" + beanDefinition + "]");
 				}
 			}
+			//注册到BeanDefinitionMap中
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
 		else {

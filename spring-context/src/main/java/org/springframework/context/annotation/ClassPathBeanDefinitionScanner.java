@@ -164,6 +164,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		/**
 		 * 设置默认的扫描规则为true的话  默认是扫描所有的
 		 * 使用includFilters来表示只包含设置的
+		 * 在这里加入了{@link org.springframework.stereotype.Component}注解包含器
 		 */
 		if (useDefaultFilters) {
 			registerDefaultFilters();

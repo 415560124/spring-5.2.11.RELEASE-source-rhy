@@ -314,6 +314,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		/**
 		 * Spring支持Component索引技术，需要引入一个组件，因为大部分情况都不会引入这个组件
 		 * 所以并不会进入此if
+		 * 可以优化大项目的扫描速度
 		 */
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
