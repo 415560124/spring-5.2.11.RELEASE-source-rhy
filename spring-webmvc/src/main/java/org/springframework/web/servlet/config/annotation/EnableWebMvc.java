@@ -21,8 +21,18 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Map;
+import java.util.function.Predicate;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.format.support.FormattingConversionService;
+import org.springframework.util.PathMatcher;
+import org.springframework.web.accept.ContentNegotiationManager;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.servlet.resource.ResourceUrlProvider;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Adding this annotation to an {@code @Configuration} class imports the Spring MVC
@@ -87,7 +97,7 @@ import org.springframework.context.annotation.Import;
  *	   }
  * }
  * </pre>
- *
+ * 主要导入了{@link DelegatingWebMvcConfiguration},这个类为springmvc的配置类，继承了{@link WebMvcConfigurationSupport}
  * @author Dave Syer
  * @author Rossen Stoyanchev
  * @since 3.1
@@ -99,5 +109,6 @@ import org.springframework.context.annotation.Import;
 @Target(ElementType.TYPE)
 @Documented
 @Import(DelegatingWebMvcConfiguration.class)
-public @interface EnableWebMvc {
+public @interface EnableWebMvc{
+
 }

@@ -178,8 +178,11 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 			targetType = String.class;
 		}
 		else {
+			//获取返回值
 			body = value;
+			//获得返回值类型
 			valueType = getReturnValueType(body, returnType);
+			//获取返回类型的真实类型Class
 			targetType = GenericTypeResolver.resolveType(getGenericType(returnType), returnType.getContainingClass());
 		}
 
@@ -220,6 +223,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 				throw new HttpMessageNotWritableException(
 						"No converter found for return value of type: " + valueType);
 			}
+			//允许返回的媒体类型
 			List<MediaType> mediaTypesToUse = new ArrayList<>();
 			for (MediaType requestedType : acceptableTypes) {
 				for (MediaType producibleType : producibleTypes) {
@@ -259,6 +263,10 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 
 		if (selectedMediaType != null) {
 			selectedMediaType = selectedMediaType.removeQualityValue();
+			/**
+			 * 循环所有实现了{@link HttpMessageConverter}类型的转换器
+			 * 支持JSON序列化的转换器{@link org.springframework.http.converter.json.MappingJackson2HttpMessageConverter}实现了此接口
+			 */
 			for (HttpMessageConverter<?> converter : this.messageConverters) {
 				GenericHttpMessageConverter genericConverter = (converter instanceof GenericHttpMessageConverter ?
 						(GenericHttpMessageConverter<?>) converter : null);
@@ -277,6 +285,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 							genericConverter.write(body, targetType, selectedMediaType, outputMessage);
 						}
 						else {
+							//响应写入JSON
 							((HttpMessageConverter) converter).write(body, selectedMediaType, outputMessage);
 						}
 					}

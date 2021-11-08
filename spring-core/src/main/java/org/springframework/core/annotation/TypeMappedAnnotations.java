@@ -142,10 +142,12 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 	public <A extends Annotation> MergedAnnotation<A> get(Class<A> annotationType,
 			@Nullable Predicate<? super MergedAnnotation<A>> predicate,
 			@Nullable MergedAnnotationSelector<A> selector) {
-
+		//检查查找的注解类型，是否为过滤的注解类型["java.lang.", "org.springframework.lang."]
+		//显然Transactional不是过滤的注解类型
 		if (this.annotationFilter.matches(annotationType)) {
 			return MergedAnnotation.missing();
 		}
+		//开始扫描注解
 		MergedAnnotation<A> result = scan(annotationType,
 				new MergedAnnotationFinder<>(annotationType, predicate, selector));
 		return (result != null ? result : MergedAnnotation.missing());
@@ -238,6 +240,7 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 			R result = processor.doWithAnnotations(criteria, 0, this.source, this.annotations);
 			return processor.finish(result);
 		}
+		//搜索的元素和搜索策略不为空则执行scan
 		if (this.element != null && this.searchStrategy != null) {
 			return AnnotationsScanner.scan(criteria, this.element, this.searchStrategy, processor);
 		}
@@ -247,7 +250,7 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 
 	static MergedAnnotations from(AnnotatedElement element, SearchStrategy searchStrategy,
 			RepeatableContainers repeatableContainers, AnnotationFilter annotationFilter) {
-
+		//是否是空的
 		if (AnnotationsScanner.isKnownEmpty(element, searchStrategy)) {
 			return NONE;
 		}

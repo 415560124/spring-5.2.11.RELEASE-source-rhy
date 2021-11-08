@@ -222,6 +222,7 @@ public abstract class AopUtils {
 	public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
 		Assert.notNull(pc, "Pointcut must not be null");
 		//进行初筛-类级别过滤（通过AspectJ）
+		//Transaction永远返回true
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
 		}
@@ -265,6 +266,7 @@ public abstract class AopUtils {
 						//通过切点表达式进行匹配 AspectJ方式，进行精筛
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
 						//通过方法匹配器进行匹配 内置AOP接口方式
+						//事务就是在这里匹配的，解析方法和类上有没有Transactional
 						methodMatcher.matches(method, targetClass)) {
 					//只要有一个方法匹配上了就创建代理
 					return true;

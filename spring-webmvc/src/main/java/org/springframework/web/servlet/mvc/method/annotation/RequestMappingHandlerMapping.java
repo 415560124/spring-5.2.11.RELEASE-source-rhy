@@ -44,6 +44,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.handler.AbstractHandlerMapping;
+import org.springframework.web.servlet.handler.AbstractHandlerMethodMapping;
 import org.springframework.web.servlet.handler.MatchableHandlerMapping;
 import org.springframework.web.servlet.handler.RequestMatchResult;
 import org.springframework.web.servlet.mvc.condition.AbstractRequestCondition;
@@ -178,14 +180,33 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	@Override
 	@SuppressWarnings("deprecation")
 	public void afterPropertiesSet() {
+		//1.构建RequestMapping.builderConfiguration静态类内部对象
 		this.config = new RequestMappingInfo.BuilderConfiguration();
+		/**
+		 * 2.调用当前父类的{@link AbstractHandlerMapping#getUrlPathHelper()}获取UrlPathHelper对象
+		 */
 		this.config.setUrlPathHelper(getUrlPathHelper());
+		/**
+		 * 3.调用当前父类的{@link AbstractHandlerMapping#getPathMatcher()}获取ant匹配对象
+		 */
 		this.config.setPathMatcher(getPathMatcher());
+		/**
+		 * 4.设置前缀匹配对象
+		 */
 		this.config.setSuffixPatternMatch(useSuffixPatternMatch());
+		/**
+		 * 5.末尾不带/匹配
+		 */
 		this.config.setTrailingSlashMatch(useTrailingSlashMatch());
 		this.config.setRegisteredSuffixPatternMatch(useRegisteredSuffixPatternMatch());
+		/**
+		 * 设置内容协商处理器（一个请求路径，返回多种数据格式）
+		 */
 		this.config.setContentNegotiationManager(getContentNegotiationManager());
-
+		/**
+		 * 调用父类的{@link AbstractHandlerMethodMapping#afterPropertiesSet()}来加载
+		 * 路径以及处理器的数据
+		 */
 		super.afterPropertiesSet();
 	}
 
@@ -242,8 +263,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	}
 
 	/**
-	 * Uses method and type-level @{@link RequestMapping} annotations to create
-	 * the RequestMappingInfo.
+	 * 解析方法上的@{@link RequestMapping}注解，为{@link RequestMappingInfo}。并且合并类上的@{@link RequestMapping}注解
 	 * @return the created RequestMappingInfo, or {@code null} if the method
 	 * does not have a {@code @RequestMapping} annotation.
 	 * @see #getCustomMethodCondition(Method)
@@ -252,14 +272,24 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	@Override
 	@Nullable
 	protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
+		//根据{@link RequestMapping}注解信息，构建RequestMappingInfo对象
 		RequestMappingInfo info = createRequestMappingInfo(method);
+		//{@link RequestMapping}注解不为空
 		if (info != null) {
+			//解析类上的{@link RequestMapping}注解信息，构建RequestMappingInfo对象
 			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
+			//如果注解上也标注了{@link RequestMapping}注解
 			if (typeInfo != null) {
+				/**
+				 * 合并注解信息
+				 * 比如合并路径
+				 */
 				info = typeInfo.combine(info);
 			}
+			//获得项目配置的路径前缀
 			String prefix = getPathPrefix(handlerType);
 			if (prefix != null) {
+				//合并{@link RequestMapping}注解路径信息
 				info = RequestMappingInfo.paths(prefix).options(this.config).build().combine(info);
 			}
 		}
@@ -289,9 +319,19 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 */
 	@Nullable
 	private RequestMappingInfo createRequestMappingInfo(AnnotatedElement element) {
+		/**
+		 * 获得方法上的{@link RequestMapping}注解
+		 */
 		RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(element, RequestMapping.class);
+		/**
+		 * 获取{@link RequestMapping}注解上的各个条件
+		 */
 		RequestCondition<?> condition = (element instanceof Class ?
 				getCustomTypeCondition((Class<?>) element) : getCustomMethodCondition((Method) element));
+		/**
+		 * 判断{@link RequestMapping}注解是否为空
+		 * 不为空则创建{@link RequestMappingInfo}包装类，保存了RequestMapping上所有的注解信息
+		 */
 		return (requestMapping != null ? createRequestMappingInfo(requestMapping, condition) : null);
 	}
 
@@ -337,16 +377,23 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 			RequestMapping requestMapping, @Nullable RequestCondition<?> customCondition) {
 
 		RequestMappingInfo.Builder builder = RequestMappingInfo
+				//构建路径
 				.paths(resolveEmbeddedValuesInPatterns(requestMapping.path()))
+				//构建请求方法 Get Post Put ...
 				.methods(requestMapping.method())
+				//构建请求参数
 				.params(requestMapping.params())
+				//构建请求头
 				.headers(requestMapping.headers())
+				//request请求的ContentType，如application/json
 				.consumes(requestMapping.consumes())
+				//response响应的ContentType
 				.produces(requestMapping.produces())
 				.mappingName(requestMapping.name());
 		if (customCondition != null) {
 			builder.customCondition(customCondition);
 		}
+		//构建RequestMappingInfo对象
 		return builder.options(this.config).build();
 	}
 

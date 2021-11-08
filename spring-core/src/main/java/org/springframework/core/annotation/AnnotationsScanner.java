@@ -81,11 +81,14 @@ abstract class AnnotationsScanner {
 	@Nullable
 	private static <C, R> R process(C context, AnnotatedElement source,
 			SearchStrategy searchStrategy, AnnotationsProcessor<C, R> processor) {
-
+		//类型为Class
 		if (source instanceof Class) {
+			//执行处理Class的方法
 			return processClass(context, (Class<?>) source, searchStrategy, processor);
 		}
+		//类型为Method
 		if (source instanceof Method) {
+			//执行处理Method的方法
 			return processMethod(context, (Method) source, searchStrategy, processor);
 		}
 		return processElement(context, source, processor);
@@ -245,6 +248,7 @@ abstract class AnnotationsScanner {
 			case SUPERCLASS:
 				return processMethodHierarchy(context, new int[] {0}, source.getDeclaringClass(),
 						processor, source, false);
+			//Transactional查找注解采用这种策略，包含所有超类及接口
 			case TYPE_HIERARCHY:
 			case TYPE_HIERARCHY_AND_ENCLOSING_CLASSES:
 				return processMethodHierarchy(context, new int[] {0}, source.getDeclaringClass(),
@@ -278,6 +282,9 @@ abstract class AnnotationsScanner {
 			if (result != null) {
 				return result;
 			}
+			/**
+			 * 是否为java内部类或者类型是{@link Ordered}
+			 */
 			if (hasPlainJavaAnnotationsOnly(sourceClass)) {
 				return null;
 			}
@@ -446,16 +453,22 @@ abstract class AnnotationsScanner {
 
 	static Annotation[] getDeclaredAnnotations(AnnotatedElement source, boolean defensive) {
 		boolean cached = false;
+		//从缓存中读一次，在解析后会把source当成key，然后解析出来的annotations[]当成value
 		Annotation[] annotations = declaredAnnotationCache.get(source);
+		//返回不为空代表被缓存过
 		if (annotations != null) {
 			cached = true;
 		}
 		else {
+			//获得source（类/方法）上的注解
 			annotations = source.getDeclaredAnnotations();
+			//source上有注解
 			if (annotations.length != 0) {
+				//检查获得的注解是不是忽略的注解 ，之后的判断中如果存在不是忽略的注解则设置false
 				boolean allIgnored = true;
 				for (int i = 0; i < annotations.length; i++) {
 					Annotation annotation = annotations[i];
+					//检查是不是忽略的注解
 					if (isIgnorable(annotation.annotationType()) ||
 							!AttributeMethods.forAnnotationType(annotation.annotationType()).isValid(annotation)) {
 						annotations[i] = null;
@@ -464,6 +477,7 @@ abstract class AnnotationsScanner {
 						allIgnored = false;
 					}
 				}
+				//如果所有注解都是被忽略的注解则返回NO_ANNOTATIONS
 				annotations = (allIgnored ? NO_ANNOTATIONS : annotations);
 				if (source instanceof Class || source instanceof Member) {
 					declaredAnnotationCache.put(source, annotations);
@@ -471,6 +485,10 @@ abstract class AnnotationsScanner {
 				}
 			}
 		}
+		/**
+		 * 传进来的defensive（应该是否克隆的标志） = false或者annotations == 0，那么直接返回annotations
+		 * 否则如果传进来的defensive = true , 并且annotation.length !=0 ，并且如果没有被缓存则返回annotations，否则返回annotations.clone()
+		 */
 		if (!defensive || annotations.length == 0 || !cached) {
 			return annotations;
 		}
@@ -482,19 +500,30 @@ abstract class AnnotationsScanner {
 	}
 
 	static boolean isKnownEmpty(AnnotatedElement source, SearchStrategy searchStrategy) {
+		//是否为java内部类 || 类型{@link Ordered}接口
 		if (hasPlainJavaAnnotationsOnly(source)) {
 			return true;
 		}
+		/**
+		 * 查询策略为{@link SearchStrategy#DIRECT} || 没有上级类了
+		 */
 		if (searchStrategy == SearchStrategy.DIRECT || isWithoutHierarchy(source, searchStrategy)) {
+			//如果是方法 && 是桥接
 			if (source instanceof Method && ((Method) source).isBridge()) {
+				//直接返回false代表不知道source里是否为空
 				return false;
 			}
+			//获得source的注解
 			return getDeclaredAnnotations(source, false).length == 0;
 		}
+		/**
+		 * 上面条件不满足代表存在上级对象，所以不知道是否为空，所以返回false
+		 */
 		return false;
 	}
 
 	static boolean hasPlainJavaAnnotationsOnly(@Nullable Object annotatedElement) {
+		//传入元素类型是Class
 		if (annotatedElement instanceof Class) {
 			return hasPlainJavaAnnotationsOnly((Class<?>) annotatedElement);
 		}
@@ -506,24 +535,42 @@ abstract class AnnotationsScanner {
 		}
 	}
 
+	/**
+	 * 是否为java内部类或者类型是{@link Ordered}
+	 * @param type
+	 * @return
+	 */
 	static boolean hasPlainJavaAnnotationsOnly(Class<?> type) {
+		/**
+		 * 类型名是java.开头，就是java内部的类 || 类型是{@link Ordered}
+		 */
 		return (type.getName().startsWith("java.") || type == Ordered.class);
 	}
 
 	private static boolean isWithoutHierarchy(AnnotatedElement source, SearchStrategy searchStrategy) {
+		//传入对象类型是Object
 		if (source == Object.class) {
 			return true;
 		}
+		//类型是Class
 		if (source instanceof Class) {
 			Class<?> sourceClass = (Class<?>) source;
+			//没有上级类 = 类型的父类为Object && 类型没有接口
 			boolean noSuperTypes = (sourceClass.getSuperclass() == Object.class &&
 					sourceClass.getInterfaces().length == 0);
+			/**
+			 * 如果搜索策略是{@link SearchStrategy#TYPE_HIERARCHY_AND_ENCLOSING_CLASSES} ? 没有上级类 && 没有匿名内部类 : 没有上级类
+			 * 因为搜索策略TYPE_HIERARCHY_AND_ENCLOSING_CLASSES代表搜索所有包括匿名内部类
+			 */
 			return (searchStrategy == SearchStrategy.TYPE_HIERARCHY_AND_ENCLOSING_CLASSES ? noSuperTypes &&
 					sourceClass.getEnclosingClass() == null : noSuperTypes);
 		}
+		//类型是Method
 		if (source instanceof Method) {
 			Method sourceMethod = (Method) source;
+			//方法是否为私有的（私有的说明没有上级方法）
 			return (Modifier.isPrivate(sourceMethod.getModifiers()) ||
+					//再次递归解析class
 					isWithoutHierarchy(sourceMethod.getDeclaringClass(), searchStrategy));
 		}
 		return true;

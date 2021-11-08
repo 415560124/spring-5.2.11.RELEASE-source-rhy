@@ -95,24 +95,31 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	@Nullable
 	public final Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
-
+		/**
+		 * 获取NameValueInfo对象，里面包含name，required，defaultValue
+		 * {@link org.springframework.web.bind.annotation.RequestParam}中的参数，如果没有这个注解的话，那么就相当于 required = false，defaultValue = null
+		 */
 		NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
 		MethodParameter nestedParameter = parameter.nestedIfOptional();
-
+		//解析参数名（可能参数名是${name}或者#{name}）
 		Object resolvedName = resolveEmbeddedValuesAndExpressions(namedValueInfo.name);
 		if (resolvedName == null) {
 			throw new IllegalArgumentException(
 					"Specified name must not resolve to null: [" + namedValueInfo.name + "]");
 		}
-
+		//解析参数值
 		Object arg = resolveName(resolvedName.toString(), nestedParameter, webRequest);
+		//值为空的话
 		if (arg == null) {
+			//如果存在默认值，则使用默认值
 			if (namedValueInfo.defaultValue != null) {
 				arg = resolveEmbeddedValuesAndExpressions(namedValueInfo.defaultValue);
 			}
+			//判断是否必输，如果必输则默认实现为抛出异常
 			else if (namedValueInfo.required && !nestedParameter.isOptional()) {
 				handleMissingValue(namedValueInfo.name, nestedParameter, webRequest);
 			}
+			//没有默认值并且非必输，那么赋值null
 			arg = handleNullValue(namedValueInfo.name, arg, nestedParameter.getNestedParameterType());
 		}
 		else if ("".equals(arg) && namedValueInfo.defaultValue != null) {
@@ -120,8 +127,10 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 		}
 
 		if (binderFactory != null) {
+			//创建数据绑定器对象
 			WebDataBinder binder = binderFactory.createBinder(webRequest, null, namedValueInfo.name);
 			try {
+				//通过数据绑定器对象，来判断当前参数value是否需要转换
 				arg = binder.convertIfNecessary(arg, parameter.getParameterType(), parameter);
 			}
 			catch (ConversionNotSupportedException ex) {
@@ -135,7 +144,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 		}
 
 		handleResolvedValue(arg, namedValueInfo.name, parameter, mavContainer, webRequest);
-
+		//返回参数值
 		return arg;
 	}
 

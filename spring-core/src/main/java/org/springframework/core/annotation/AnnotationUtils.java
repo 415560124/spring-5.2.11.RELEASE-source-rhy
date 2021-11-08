@@ -164,12 +164,15 @@ public abstract class AnnotationUtils {
 	 * @see #isCandidateClass(Class, Class)
 	 */
 	public static boolean isCandidateClass(Class<?> clazz, String annotationName) {
+		//如果是java开头的包注解直接返回true
 		if (annotationName.startsWith("java.")) {
 			return true;
 		}
+		//检查是否为java内部类或者类型是类型是{@link Ordered}
 		if (AnnotationsScanner.hasPlainJavaAnnotationsOnly(clazz)) {
 			return false;
 		}
+		//否则一律返回true，我们自己定义的类肯定是返回true了
 		return true;
 	}
 

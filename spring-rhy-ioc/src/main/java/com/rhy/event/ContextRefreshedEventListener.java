@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * @slogan: 如果你想攀登高峰，切莫把彩虹当梯子
  * @description: 上下文加载完成监听器
  */
-@Component
+//@Component
 public class ContextRefreshedEventListener {
 	@EventListener(ContextRefreshedEvent.class)
 	public void doContextStartedEventListener(){

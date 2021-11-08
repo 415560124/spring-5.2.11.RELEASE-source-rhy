@@ -73,7 +73,8 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		if (advisorNames == null) {
 			/**
 			 * 1.去容器中获取所有实现了{@link Advisor}接口的实现类
-			 * 2.我们事务注解@EnableTransactionManagement导入了一个叫ProxyTransactionManagementConfiguration配置类，在这个配置类中配置了
+			 * 2.我们事务注解@EnableTransactionManagement导入了一个叫ProxyTransactionManagementConfiguration配置类。
+			 * 在这个配置类中配置了{@link BeanFactoryTransactionAttributeSourceAdvisor}用于事务的Advisor
 			 */
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);
@@ -83,9 +84,10 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		if (advisorNames.length == 0) {
 			return new ArrayList<>();
 		}
-
+		//ioc容器中找到了我们配置的BeanFactoryTransactionAttributeSourceAdvisor
 		List<Advisor> advisors = new ArrayList<>();
 		for (String name : advisorNames) {
+			//判断该advisor是否符合  在{@link AutoProxyRegistrar}中注册的{@link InfrastructureAdvisorAutoProxyCreator}也是重写了这个方法
 			if (isEligibleBean(name)) {
 				if (this.beanFactory.isCurrentlyInCreation(name)) {
 					if (logger.isTraceEnabled()) {
@@ -94,6 +96,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 				}
 				else {
 					try {
+						//调用getBean返回{@link InfrastructureAdvisorAutoProxyCreator}实例
 						advisors.add(this.beanFactory.getBean(name, Advisor.class));
 					}
 					catch (BeanCreationException ex) {

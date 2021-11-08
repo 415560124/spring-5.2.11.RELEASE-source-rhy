@@ -48,7 +48,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
 import org.springframework.web.util.UrlPathHelper;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
  * Abstract base class for {@link org.springframework.web.servlet.HandlerMapping}
@@ -283,8 +285,13 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 */
 	@Override
 	protected void initApplicationContext() throws BeansException {
+		//空实现留给子类扩展
 		extendInterceptors(this.interceptors);
+		/**
+		 * 读取实现了{@link MappedInterceptor}接口的拦截器
+		 */
 		detectMappedInterceptors(this.adaptedInterceptors);
+		//合并拦截器信息
 		initInterceptors();
 	}
 
@@ -393,19 +400,28 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	@Override
 	@Nullable
 	public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		/**
+		 * {@link RequestMappingHandlerMapping}继承了{@link RequestMappingInfoHandlerMapping#getHandlerInternal(HttpServletRequest)}
+		 * 解析请求，获取{@link HandlerMethod}
+		 */
 		Object handler = getHandlerInternal(request);
+		//如果handler为空
 		if (handler == null) {
+			//返回默认的handler
 			handler = getDefaultHandler();
 		}
 		if (handler == null) {
 			return null;
 		}
-		// Bean name or resolved handler?
+		// 解析出来的handler是String类型，从容器中获取bean
 		if (handler instanceof String) {
 			String handlerName = (String) handler;
 			handler = obtainApplicationContext().getBean(handlerName);
 		}
-
+		/**
+		 * 获取请求执行链
+		 * 包装了 {@link HandlerInterceptor}拦截器 和 {@link org.springframework.web.method.HandlerMethod}
+		 */
 		HandlerExecutionChain executionChain = getHandlerExecutionChain(handler, request);
 
 		if (logger.isTraceEnabled()) {
@@ -414,7 +430,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 		else if (logger.isDebugEnabled() && !request.getDispatcherType().equals(DispatcherType.ASYNC)) {
 			logger.debug("Mapped to " + executionChain.getHandler());
 		}
-
+		//处理跨域的
 		if (hasCorsConfigurationSource(handler) || CorsUtils.isPreFlightRequest(request)) {
 			CorsConfiguration config = (this.corsConfigurationSource != null ? this.corsConfigurationSource.getCorsConfiguration(request) : null);
 			CorsConfiguration handlerConfig = getCorsConfiguration(handler, request);
@@ -465,14 +481,21 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * @see #getAdaptedInterceptors()
 	 */
 	protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
+		//创建执行器链对象
 		HandlerExecutionChain chain = (handler instanceof HandlerExecutionChain ?
 				(HandlerExecutionChain) handler : new HandlerExecutionChain(handler));
-
+		//从请求中获取请求映射路径
 		String lookupPath = this.urlPathHelper.getLookupPathForRequest(request, LOOKUP_PATH);
+		//循环所有拦截器对象
 		for (HandlerInterceptor interceptor : this.adaptedInterceptors) {
+			//判断是否实现了MappedInterceptor
 			if (interceptor instanceof MappedInterceptor) {
 				MappedInterceptor mappedInterceptor = (MappedInterceptor) interceptor;
+				/**
+				 * 如果实现了则调用{@link MappedInterceptor#matches(String, PathMatcher)}方法
+				 */
 				if (mappedInterceptor.matches(lookupPath, this.pathMatcher)) {
+					//返回true再添加到拦截器链中
 					chain.addInterceptor(mappedInterceptor.getInterceptor());
 				}
 			}
@@ -480,6 +503,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 				chain.addInterceptor(interceptor);
 			}
 		}
+		//返回执行器链
 		return chain;
 	}
 

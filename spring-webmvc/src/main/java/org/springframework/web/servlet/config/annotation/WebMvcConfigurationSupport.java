@@ -521,32 +521,32 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	 * resource handlers. To configure resource handling, override
 	 * {@link #addResourceHandlers}.
 	 */
-	@Bean
-	@Nullable
-	public HandlerMapping resourceHandlerMapping(
-			@Qualifier("mvcUrlPathHelper") UrlPathHelper urlPathHelper,
-			@Qualifier("mvcPathMatcher") PathMatcher pathMatcher,
-			@Qualifier("mvcContentNegotiationManager") ContentNegotiationManager contentNegotiationManager,
-			@Qualifier("mvcConversionService") FormattingConversionService conversionService,
-			@Qualifier("mvcResourceUrlProvider") ResourceUrlProvider resourceUrlProvider) {
-
-		Assert.state(this.applicationContext != null, "No ApplicationContext set");
-		Assert.state(this.servletContext != null, "No ServletContext set");
-
-		ResourceHandlerRegistry registry = new ResourceHandlerRegistry(this.applicationContext,
-				this.servletContext, contentNegotiationManager, urlPathHelper);
-		addResourceHandlers(registry);
-
-		AbstractHandlerMapping handlerMapping = registry.getHandlerMapping();
-		if (handlerMapping == null) {
-			return null;
-		}
-		handlerMapping.setPathMatcher(pathMatcher);
-		handlerMapping.setUrlPathHelper(urlPathHelper);
-		handlerMapping.setInterceptors(getInterceptors(conversionService, resourceUrlProvider));
-		handlerMapping.setCorsConfigurations(getCorsConfigurations());
-		return handlerMapping;
-	}
+//	@Bean
+//	@Nullable
+//	public HandlerMapping resourceHandlerMapping(
+//			@Qualifier("mvcUrlPathHelper") UrlPathHelper urlPathHelper,
+//			@Qualifier("mvcPathMatcher") PathMatcher pathMatcher,
+//			@Qualifier("mvcContentNegotiationManager") ContentNegotiationManager contentNegotiationManager,
+//			@Qualifier("mvcConversionService") FormattingConversionService conversionService,
+//			@Qualifier("mvcResourceUrlProvider") ResourceUrlProvider resourceUrlProvider) {
+//
+//		Assert.state(this.applicationContext != null, "No ApplicationContext set");
+//		Assert.state(this.servletContext != null, "No ServletContext set");
+//
+//		ResourceHandlerRegistry registry = new ResourceHandlerRegistry(this.applicationContext,
+//				this.servletContext, contentNegotiationManager, urlPathHelper);
+//		addResourceHandlers(registry);
+//
+//		AbstractHandlerMapping handlerMapping = registry.getHandlerMapping();
+//		if (handlerMapping == null) {
+//			return null;
+//		}
+//		handlerMapping.setPathMatcher(pathMatcher);
+//		handlerMapping.setUrlPathHelper(urlPathHelper);
+//		handlerMapping.setInterceptors(getInterceptors(conversionService, resourceUrlProvider));
+//		handlerMapping.setCorsConfigurations(getCorsConfigurations());
+//		return handlerMapping;
+//	}
 
 	/**
 	 * Override this method to add resource handlers for serving static resources.
@@ -578,14 +578,14 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	 * default servlet handler. To configure "default" Servlet handling,
 	 * override {@link #configureDefaultServletHandling}.
 	 */
-	@Bean
-	@Nullable
-	public HandlerMapping defaultServletHandlerMapping() {
-		Assert.state(this.servletContext != null, "No ServletContext set");
-		DefaultServletHandlerConfigurer configurer = new DefaultServletHandlerConfigurer(this.servletContext);
-		configureDefaultServletHandling(configurer);
-		return configurer.buildHandlerMapping();
-	}
+//	@Bean
+//	@Nullable
+//	public HandlerMapping defaultServletHandlerMapping() {
+//		Assert.state(this.servletContext != null, "No ServletContext set");
+//		DefaultServletHandlerConfigurer configurer = new DefaultServletHandlerConfigurer(this.servletContext);
+//		configureDefaultServletHandling(configurer);
+//		return configurer.buildHandlerMapping();
+//	}
 
 	/**
 	 * Override this method to configure "default" Servlet handling.

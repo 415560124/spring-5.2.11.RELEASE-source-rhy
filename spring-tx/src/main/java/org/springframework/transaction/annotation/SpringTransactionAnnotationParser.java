@@ -47,9 +47,12 @@ public class SpringTransactionAnnotationParser implements TransactionAnnotationP
 	@Override
 	@Nullable
 	public TransactionAttribute parseTransactionAnnotation(AnnotatedElement element) {
+		//从element对象中获取@Transactional注解，然后把属性封装到了AnnotationAttributes
 		AnnotationAttributes attributes = AnnotatedElementUtils.findMergedAnnotationAttributes(
 				element, Transactional.class, false, false);
+		//@Transactional属性不为空
 		if (attributes != null) {
+			//解析出事务属性对象
 			return parseTransactionAnnotation(attributes);
 		}
 		else {
@@ -62,26 +65,52 @@ public class SpringTransactionAnnotationParser implements TransactionAnnotationP
 	}
 
 	protected TransactionAttribute parseTransactionAnnotation(AnnotationAttributes attributes) {
+		//创建一个基础规则的事务属性对象
 		RuleBasedTransactionAttribute rbta = new RuleBasedTransactionAttribute();
-
+		/**
+		 * 解析{@link Transactional#propagation()}传播行为
+		 */
 		Propagation propagation = attributes.getEnum("propagation");
 		rbta.setPropagationBehavior(propagation.value());
+		/**
+		 * 解析{@link Transactional#isolation()}隔离级别
+		 */
 		Isolation isolation = attributes.getEnum("isolation");
 		rbta.setIsolationLevel(isolation.value());
+		/**
+		 * 解析{@link Transactional#timeout()}超时时间
+		 */
 		rbta.setTimeout(attributes.getNumber("timeout").intValue());
+		/**
+		 * 解析{@link Transactional#readOnly()}是否只读
+		 */
 		rbta.setReadOnly(attributes.getBoolean("readOnly"));
+		/**
+		 * 解析{@link Transactional#value()}事务管理器名称
+		 */
 		rbta.setQualifier(attributes.getString("value"));
-
+		/**
+		 * 解析{@link Transactional#rollbackFor()}针对哪些异常回滚
+		 */
 		List<RollbackRuleAttribute> rollbackRules = new ArrayList<>();
 		for (Class<?> rbRule : attributes.getClassArray("rollbackFor")) {
 			rollbackRules.add(new RollbackRuleAttribute(rbRule));
 		}
+		/**
+		 * 解析{@link Transactional#rollbackFor()}针对哪些异常类名回滚
+		 */
 		for (String rbRule : attributes.getStringArray("rollbackForClassName")) {
 			rollbackRules.add(new RollbackRuleAttribute(rbRule));
 		}
+		/**
+		 * 解析{@link Transactional#rollbackFor()}针对哪些异常不回滚
+		 */
 		for (Class<?> rbRule : attributes.getClassArray("noRollbackFor")) {
 			rollbackRules.add(new NoRollbackRuleAttribute(rbRule));
 		}
+		/**
+		 * 解析{@link Transactional#rollbackFor()}针对哪些异常类名不回滚
+		 */
 		for (String rbRule : attributes.getStringArray("noRollbackForClassName")) {
 			rollbackRules.add(new NoRollbackRuleAttribute(rbRule));
 		}

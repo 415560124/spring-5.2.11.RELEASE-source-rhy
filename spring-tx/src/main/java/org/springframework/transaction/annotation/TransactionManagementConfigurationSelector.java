@@ -19,6 +19,7 @@ package org.springframework.transaction.annotation;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.AdviceModeImportSelector;
 import org.springframework.context.annotation.AutoProxyRegistrar;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.transaction.config.TransactionManagementConfigUtils;
 import org.springframework.util.ClassUtils;
 
@@ -26,7 +27,7 @@ import org.springframework.util.ClassUtils;
  * Selects which implementation of {@link AbstractTransactionManagementConfiguration}
  * should be used based on the value of {@link EnableTransactionManagement#mode} on the
  * importing {@code @Configuration} class.
- *
+ * 加载Bean定义的时候首先会调用{@link AdviceModeImportSelector#selectImports(AnnotationMetadata)}我们的{@link #selectImports(AdviceMode)方法}
  * @author Chris Beams
  * @author Juergen Hoeller
  * @since 3.1
@@ -45,8 +46,19 @@ public class TransactionManagementConfigurationSelector extends AdviceModeImport
 	 */
 	@Override
 	protected String[] selectImports(AdviceMode adviceMode) {
+		/**
+		 * 一般情况下都会是{@link AdviceMode#PROXY}
+		 */
 		switch (adviceMode) {
 			case PROXY:
+				/**
+				 * 为容器导入了两个组件
+				 * {@link AutoProxyRegistrar}负责注册{@link InfrastructureAdvisorAutoProxyCreator}
+				 * {@link ProxyTransactionManagementConfiguration}事务的配置类。里面向ioc容器注入了三个bean：
+				 * 		{@link BeanFactoryTransactionAttributeSourceAdvisor}事务的Advisor
+				 * 	    {@link TransactionAttributeSource}负责解析{@link Transactional}注解的类
+				 * 	    {@link TransactionInterceptor}事务通知拦截器，在调用代理时在拦截链中执行
+				 */
 				return new String[] {AutoProxyRegistrar.class.getName(),
 						ProxyTransactionManagementConfiguration.class.getName()};
 			case ASPECTJ:
