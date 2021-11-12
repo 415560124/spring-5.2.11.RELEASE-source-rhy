@@ -85,7 +85,8 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	}
 
 	/**
-	 * Obtain an object to expose from the given FactoryBean.
+	 * 调用{@link FactoryBean#getObject()}获取Bean实例
+	 * 之后调用Bean初始化后置处理器{@link org.springframework.beans.factory.config.BeanPostProcessor#postProcessAfterInitialization(Object, String)}
 	 * @param factory the FactoryBean instance
 	 * @param beanName the name of the bean
 	 * @param shouldPostProcess whether the bean is subject to post-processing
@@ -150,7 +151,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	}
 
 	/**
-	 * Obtain an object to expose from the given FactoryBean.
+	 * 调用{@link FactoryBean#getObject()}
 	 * @param factory the FactoryBean instance
 	 * @param beanName the name of the bean
 	 * @return the object obtained from the FactoryBean
@@ -170,6 +171,9 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 				}
 			}
 			else {
+				/**
+				 * 调用{@link FactoryBean#getObject()}
+				 */
 				object = factory.getObject();
 			}
 		}

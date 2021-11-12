@@ -486,7 +486,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 		RootBeanDefinition mbdToUse = mbd;
 
-		// 确保此时确实解析了bean类, 并在无法动态存储的Class不能存储在共享合并bean定义中的情况下克隆bean定义。
+		/**
+		 * {@link RootBeanDefinition#beanClass}属性存的是字符串，也就是类的全限定名
+		 * 需要通过类加载器加载类Class
+		 */
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			mbdToUse = new RootBeanDefinition(mbd);
@@ -608,6 +611,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
+			//添加到一二三级缓存中
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -1483,6 +1487,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		//获取bean定义的属性
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 		/**
+		 * 这个适用于@Bean#autowire属性设置，不常用
 		 * 判断bean属性注入模型
 		 * AUTOWIRE_BY_NAME 根据名称注入
 		 * AUTOWIRE_BY_TYPE 根据类型注入
@@ -1519,6 +1524,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
+					/**
+					 * {@link AutowiredAnnotationBeanPostProcessor#postProcessProperties(PropertyValues, Object, String)}实现了这个方法找出这个类所有需要{@link Autowired}依赖注入的属性，并给属性赋值
+					 * {@link CommonAnnotationBeanPostProcessor#postProcessProperties(PropertyValues, Object, String)}实现了这个方法找出这个类所有需要{@link Resource}依赖注入的属性，并给属性赋值
+					 */
 					PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 					if (pvsToUse == null) {
 						if (filteredPds == null) {
@@ -1542,8 +1551,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			checkDependencies(beanName, mbd, filteredPds, pvs);
 		}
 		/**
-		 * 上面只是完成了所有注入属性的获取，将获取的属性封装在PropertyValues的实例对象pvs中
-		 * 并没有注入到实例化的bean中，这个方法就是完成注入到bean的一步
+		 * 通过{@link MergedBeanDefinitionPostProcessor#postProcessMergedBeanDefinition(RootBeanDefinition, Class, String)}自定义填充属性值
+		 * 在此时完成注入到bean
 		 */
 		if (pvs != null) {
 			applyPropertyValues(beanName, mbd, bw, pvs);

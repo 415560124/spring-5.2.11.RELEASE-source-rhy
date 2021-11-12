@@ -392,10 +392,20 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		return (candidateConstructors.length > 0 ? candidateConstructors : null);
 	}
 
+	/**
+	 * 1.找出所有标注了@Autowired注解的属性
+	 * 2.给属性注入值
+	 * @param pvs
+	 * @param bean
+	 * @param beanName
+	 * @return
+	 */
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+		//解析出来所有需要注入的属性
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
+			//给属性输入值
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {

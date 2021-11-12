@@ -312,7 +312,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			try {
-				//合并bean定义
+				//合并bean定义 在xml中会有<bean parent="prentBeanName">这样的配置，在这里合并父子标签
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 				//检查当前创建的bean定义是不是抽象的bean定义
 				checkMergedBeanDefinition(mbd, beanName, args);
@@ -365,6 +365,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					Object prototypeInstance = null;
 					try {
 						beforePrototypeCreation(beanName);
+						/**
+						 * 直接创建Bean不从缓存池({@link #singletonObjects})中拿，也不缓存到缓存池({@link #singletonObjects})中
+						 */
 						prototypeInstance = createBean(beanName, mbd, args);
 					}
 					finally {
@@ -812,6 +815,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		this.beanClassLoader = (beanClassLoader != null ? beanClassLoader : ClassUtils.getDefaultClassLoader());
 	}
 
+	/**
+	 * 获取类加载器
+	 * 默认逻辑：
+	 * ①从当前线程变量中取
+	 * ②取加载当前类的类加载器
+	 * ③获取系统类加载器
+	 * @return
+	 */
 	@Override
 	@Nullable
 	public ClassLoader getBeanClassLoader() {
@@ -1509,6 +1520,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 						() -> doResolveBeanClass(mbd, typesToMatch), getAccessControlContext());
 			}
 			else {
+				//使用类加载器，加载类Class
 				return doResolveBeanClass(mbd, typesToMatch);
 			}
 		}
@@ -1527,7 +1539,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	@Nullable
 	private Class<?> doResolveBeanClass(RootBeanDefinition mbd, Class<?>... typesToMatch)
 			throws ClassNotFoundException {
-
+		//获取类加载器
 		ClassLoader beanClassLoader = getBeanClassLoader();
 		ClassLoader dynamicLoader = beanClassLoader;
 		boolean freshResolve = false;
