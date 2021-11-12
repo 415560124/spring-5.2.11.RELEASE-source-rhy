@@ -3,17 +3,20 @@ package com.rhy.service.impl;
 import com.rhy.service.OrderService;
 import com.rhy.service.PayService;
 import com.rhy.service.UserService;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
+import org.springframework.beans.factory.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, BeanNameAware, BeanFactoryAware, BeanClassLoaderAware, InitializingBean,SmartInitializingSingleton {
 //	@Autowired
 	@Resource
 	private PayService payService;
@@ -45,5 +48,30 @@ public class UserServiceImpl implements UserService {
 	private OrderService orderService;
 	public void setOrderService(OrderService orderService) {
 		this.orderService = orderService;
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		System.out.println("BeanClassLoaderAware#setBeanClassLoader");
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		System.out.println("BeanFactoryAware#setBeanFactory");
+	}
+
+	@Override
+	public void setBeanName(String name) {
+		System.out.println("BeanNameAware#setBeanName");
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		System.out.println("InitializingBean#afterPropertiesSet");
+	}
+
+	@Override
+	public void afterSingletonsInstantiated() {
+		System.out.println("SmartInitializingSingleton#afterSingletonsInstantiated");
 	}
 }

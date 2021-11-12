@@ -60,6 +60,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.InjectionPoint;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.AutowiredPropertyMarker;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -621,7 +623,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			/**
 			 * 进行属性赋值
 			 * 执行了判断是否走框架的属性赋值逻辑的{@link InstantiationAwareBeanPostProcessor#postProcessAfterInstantiation(Object, String)}
-			 * 执行了可以修改赋值属性的{@link InstantiationAwareBeanPostProcessor#postProcessPropertyValues(PropertyValues, PropertyDescriptor[], Object, String)}
+			 * 执行了处理{@link Autowired}{@link AutowiredAnnotationBeanPostProcessor#postProcessProperties(PropertyValues, Object, String)}
+			 * 执行了处理{@link Resource}{@link CommonAnnotationBeanPostProcessor#postProcessProperties(PropertyValues, Object, String)}
 			 */
 			populateBean(beanName, mbd, instanceWrapper);
 
@@ -1534,6 +1537,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 							//提出当前正在创建beanWrapper依赖的对象
 							filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 						}
+						//已经不建议使用
 						pvsToUse = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
 						if (pvsToUse == null) {
 							return;

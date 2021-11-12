@@ -22,11 +22,17 @@ public class MyBeanPostProcessor implements InstantiationAwareBeanPostProcessor,
 	private static final Log logging = LogFactory.getLog(MyBeanPostProcessor.class);
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		if(bean instanceof UserServiceImpl){
+			System.out.println("InstantiationAwareBeanPostProcessor#postProcessBeforeInitialization 初始化前执行");
+		}
 		return InstantiationAwareBeanPostProcessor.super.postProcessBeforeInitialization(bean, beanName);
 	}
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+		if(beanName.equals("userServiceImpl")){
+			System.out.println("InstantiationAwareBeanPostProcessor#postProcessAfterInitialization 初始化后执行");
+		}
 		return InstantiationAwareBeanPostProcessor.super.postProcessAfterInitialization(bean, beanName);
 	}
 
