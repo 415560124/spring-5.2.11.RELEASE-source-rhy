@@ -1116,6 +1116,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Actually performs context closing: publishes a ContextClosedEvent and
 	 * destroys the singletons in the bean factory of this application context.
 	 * <p>Called by both {@code close()} and a JVM shutdown hook, if any.
+	 * 1.发布销毁事件
+	 * 2.清空单例缓存池，清空容器中缓存引用，执行销毁触发方法
 	 * @see org.springframework.context.event.ContextClosedEvent
 	 * @see #destroyBeans()
 	 * @see #close()
@@ -1132,6 +1134,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			try {
 				// Publish shutdown event.
+				// 发布销毁事件
 				publishEvent(new ContextClosedEvent(this));
 			}
 			catch (Throwable ex) {
@@ -1149,12 +1152,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 
 			// Destroy all cached singletons in the context's BeanFactory.
+			// 清空单例缓存池，清空容器中缓存引用，执行销毁触发方法
 			destroyBeans();
 
 			// Close the state of this context itself.
 			closeBeanFactory();
 
 			// Let subclasses do some final clean-up if they wish...
+			// 子类扩展方法
 			onClose();
 
 			// Reset local application listeners to pre-refresh state.
@@ -1176,6 +1181,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Can be overridden to add context-specific bean destruction steps
 	 * right before or right after standard singleton destruction,
 	 * while the context's BeanFactory is still active.
+	 * 清空单例缓存池，清空容器中缓存引用，执行销毁触发方法
 	 * @see #getBeanFactory()
 	 * @see org.springframework.beans.factory.config.ConfigurableBeanFactory#destroySingletons()
 	 */

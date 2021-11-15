@@ -402,6 +402,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * been registered as disposable. To be called on shutdown of a factory.
 	 * <p>Any exception that arises during destruction should be caught
 	 * and logged instead of propagated to the caller of this method.
+	 * 销毁容器中单例缓存池，并执行销毁触发方法
 	 */
 	void destroySingletons();
 

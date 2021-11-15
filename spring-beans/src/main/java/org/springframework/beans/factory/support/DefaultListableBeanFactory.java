@@ -1141,9 +1141,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		clearByTypeCache();
 	}
 
+	/**
+	 * 清空单例缓存池，清空容器中缓存引用，执行销毁触发方法
+	 */
 	@Override
 	public void destroySingletons() {
+		//执行销毁Bean触发方法
 		super.destroySingletons();
+		//清理 manualSingletonNames集合
 		updateManualSingletonNames(Set::clear, set -> !set.isEmpty());
 		clearByTypeCache();
 	}

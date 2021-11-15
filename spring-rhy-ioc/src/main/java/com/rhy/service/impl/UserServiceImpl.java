@@ -13,10 +13,11 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 @Service
-public class UserServiceImpl implements UserService, BeanNameAware, BeanFactoryAware, BeanClassLoaderAware, InitializingBean,SmartInitializingSingleton {
+public class UserServiceImpl implements UserService, BeanNameAware, BeanFactoryAware, BeanClassLoaderAware, InitializingBean,SmartInitializingSingleton,DisposableBean,AutoCloseable {
 //	@Autowired
 	@Resource
 	private PayService payService;
@@ -73,5 +74,24 @@ public class UserServiceImpl implements UserService, BeanNameAware, BeanFactoryA
 	@Override
 	public void afterSingletonsInstantiated() {
 		System.out.println("SmartInitializingSingleton#afterSingletonsInstantiated");
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		System.out.println("DisposableBean#destroy");
+	}
+
+
+	@PreDestroy
+	public void preDestroy() throws Exception {
+		System.out.println("@PreDestroy");
+	}
+
+	public void beanDefinitionDestroy(){
+		System.out.println("UserServiceImpl#beanDefinitionDestroy");
+	}
+	@Override
+	public void close() {
+		System.out.println("AutoCloseable#close");
 	}
 }

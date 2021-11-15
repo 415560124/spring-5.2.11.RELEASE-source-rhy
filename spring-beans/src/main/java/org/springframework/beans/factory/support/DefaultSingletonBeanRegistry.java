@@ -432,6 +432,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * matching the bean name but potentially being a different instance
 	 * (for example, a DisposableBean adapter for a singleton that does not
 	 * naturally implement Spring's DisposableBean interface).
+	 * 把需要执行销毁逻辑的Bean注册到{@link #disposableBeans}销毁BeanMap中
 	 * @param beanName the name of the bean
 	 * @param bean the bean instance
 	 */
@@ -561,6 +562,9 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		}
 	}
 
+	/**
+	 * 清空单例缓存池，清空容器中缓存引用，执行销毁触发方法
+	 */
 	public void destroySingletons() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Destroying singletons in " + this);
@@ -574,9 +578,10 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 			disposableBeanNames = StringUtils.toStringArray(this.disposableBeans.keySet());
 		}
 		for (int i = disposableBeanNames.length - 1; i >= 0; i--) {
+			//清空单例缓存池，执行销毁触发方法
 			destroySingleton(disposableBeanNames[i]);
 		}
-
+		//清理bean相关Map
 		this.containedBeanMap.clear();
 		this.dependentBeanMap.clear();
 		this.dependenciesForBeanMap.clear();
@@ -601,11 +606,13 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	/**
 	 * Destroy the given bean. Delegates to {@code destroyBean}
 	 * if a corresponding disposable bean instance is found.
+	 * 清空单例缓存池，执行销毁触发方法
 	 * @param beanName the name of the bean
 	 * @see #destroyBean
 	 */
 	public void destroySingleton(String beanName) {
 		// Remove a registered singleton of the given name, if any.
+		// 清空单例缓存池
 		removeSingleton(beanName);
 
 		// Destroy the corresponding DisposableBean instance.
@@ -613,6 +620,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		synchronized (this.disposableBeans) {
 			disposableBean = (DisposableBean) this.disposableBeans.remove(beanName);
 		}
+		//执行销毁触发方法
 		destroyBean(beanName, disposableBean);
 	}
 
@@ -641,6 +649,9 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		// Actually destroy the bean now...
 		if (bean != null) {
 			try {
+				/**
+				 * 执行销毁方法，这里进入的是{@link DisposableBeanAdapter#destroy()}适配各种类型的销毁方法：@PreDestroy || {@link DisposableBean} || {@link AutoCloseable}
+				 */
 				bean.destroy();
 			}
 			catch (Throwable ex) {

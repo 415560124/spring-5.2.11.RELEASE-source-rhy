@@ -9,6 +9,8 @@ public class MainStart {
 	public static void main(String[] args) {
 
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Config.class);
+		//注册容器销毁钩子，进程被正常关闭时调用
+		applicationContext.registerShutdownHook();
 		UserService userService = applicationContext.getBean(UserService.class);
 		userService.helloWorld();
 		TargetService targetService = applicationContext.getBean(TargetService.class);
@@ -23,4 +25,3 @@ public class MainStart {
 	}
 }
 
-  
