@@ -665,6 +665,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 			}
 			else {
+				/**
+				 * 根据field字段信息，从BeanFactory中查到匹配的Bean对象
+				 */
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 				desc.setContainingClass(bean.getClass());
 				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
@@ -697,6 +700,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				}
 			}
 			if (value != null) {
+				//反射给字段赋值
 				ReflectionUtils.makeAccessible(field);
 				field.set(bean, value);
 			}
@@ -733,6 +737,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				arguments = resolveCachedArguments(beanName);
 			}
 			else {
+				/**
+				 * 根据方法入参，从工厂中取到所有参数的值
+				 */
 				int argumentCount = method.getParameterCount();
 				arguments = new Object[argumentCount];
 				DependencyDescriptor[] descriptors = new DependencyDescriptor[argumentCount];
@@ -782,6 +789,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					}
 				}
 			}
+			//反射调用方法执行注入
 			if (arguments != null) {
 				try {
 					ReflectionUtils.makeAccessible(method);

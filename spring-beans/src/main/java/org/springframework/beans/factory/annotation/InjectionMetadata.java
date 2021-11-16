@@ -109,13 +109,20 @@ public class InjectionMetadata {
 		}
 		this.checkedElements = checkedElements;
 	}
-
+	
 	public void inject(Object target, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 		Collection<InjectedElement> checkedElements = this.checkedElements;
 		Collection<InjectedElement> elementsToIterate =
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
+			//循环所有需要注入的元数据
 			for (InjectedElement element : elementsToIterate) {
+				/**
+				 * 执行注入
+				 * 在这里有两种类型
+				 * 1.字段注入：{@link AutowiredAnnotationBeanPostProcessor.AutowiredFieldElement#inject(Object, String, PropertyValues)}
+				 * 2.方法注入：{@link AutowiredAnnotationBeanPostProcessor.AutowiredMethodElement#inject(Object, String, PropertyValues)}
+				 */
 				element.inject(target, beanName, pvs);
 			}
 		}
