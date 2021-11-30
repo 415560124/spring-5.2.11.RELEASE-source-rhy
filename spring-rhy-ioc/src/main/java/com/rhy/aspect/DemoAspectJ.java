@@ -14,7 +14,7 @@ import java.util.Arrays;
  * @description: AspectJ切面类示例
  */
 @Aspect
-@Component
+//@Component
 public class DemoAspectJ {
 	@Pointcut("execution(* com.rhy.service.impl.*.*(..))")
 	public void pointcut() {};
