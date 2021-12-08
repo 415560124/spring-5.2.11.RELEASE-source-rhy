@@ -154,6 +154,7 @@ class ConfigurationClassBeanDefinitionReader {
 		 * {@link ImportBeanDefinitionRegistrar}注册{@link ConfigurationClass#importBeanDefinitionRegistrars}为BeanDefinition
 		 */
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
+		StringUtils
 	}
 
 	/**
